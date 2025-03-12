@@ -1,18 +1,23 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth , email, password} from "../database/firebase.js";
-import { verificationEmail } from "./authServices.js";
+import { email, password } from "../database/firebase";
+import { delUser, logIn, resetPassword, signIn } from "./authServices";
 
-createUserWithEmailAndPassword(auth, email, password)
-  .then((userCredential) => {
-    const user = userCredential.user;
-    console.log("Usuário criado:", user.email);
-    return verificationEmail(user);
-  })
-  .then(() => {
-    console.log("Teste concluído com sucesso!");
-  })
-  .catch((error) => {
-    console.error("Erro durante o teste:", error);
-  });
+//testes !!!, so retirar os comentarios
+//lembrar de mudar o  email e a senha d teste no src\database\firebase.js
 
-// Testa ai o verificationEmail
+//logIn(email,password);
+//signIn(email, password);
+//resetPassword(email);
+
+//pra testar a ultima funcao usa esse modelo
+
+/*
+signIn(email, password)
+  .then((User)=>{
+    delUser(User);
+  })
+  .catch((error)=>{
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    console.log("ERRO: ", errorCode, errorMessage);
+  })
+*/
