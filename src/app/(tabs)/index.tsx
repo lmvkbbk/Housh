@@ -12,7 +12,7 @@ interface GoalType {
     description?: string;
     timeRemaining?: string;
     color: string;
-  }
+}
 
 export default function Home(){
     const [modalVisible, setModalVisible] = useState(false);
@@ -81,12 +81,12 @@ const styles = StyleSheet.create({
     },
     fab: {
         position: "absolute",
-        right: 20,
-        bottom: 20,
+        right: 16,
+        bottom: 16,
         backgroundColor: colors.grey2,
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
         justifyContent: "center",
         alignItems: "center"
     },

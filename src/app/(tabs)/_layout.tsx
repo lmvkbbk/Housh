@@ -21,12 +21,6 @@ export default function Layout() {
         },
       }}
     >
-      <Tabs.Screen name="perfil"
-      options={{
-        tabBarIcon: ({color, size}) =>(<Feather name="user" size={size} color={color} />)
-      }}
-      />
-
       <Tabs.Screen name="index"
       options={{
         tabBarIcon: ({color, size}) =>(<Feather name="home" size={size} color={color} />)
@@ -36,6 +30,12 @@ export default function Layout() {
       <Tabs.Screen name="teams"
       options={{
         tabBarIcon: ({color, size}) =>(<FontAwesome name="group" size={size} color={color} />)
+      }}
+      />
+
+      <Tabs.Screen name="perfil"
+      options={{
+        tabBarIcon: ({color, size}) =>(<Feather name="user" size={size} color={color} />)
       }}
       />
 
