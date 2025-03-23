@@ -1,9 +1,12 @@
 import { 
     createUserWithEmailAndPassword, 
     deleteUser, 
+    fetchSignInMethodsForEmail, 
+    getAuth, 
     sendEmailVerification, 
     sendPasswordResetEmail, 
-    signInWithEmailAndPassword 
+    signInWithEmailAndPassword,
+    signOut
 } from "firebase/auth";
 import { auth } from "../database/firebase.js";
 
@@ -15,9 +18,8 @@ export function logIn(email, password){
     })
     .catch((error) => {
         const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log("Ocorreu algum erro ao add User: ", errorCode, errorMessage);
-        throw error;
+        console.log( errorCode);
+        throw errorCode;
     });
 }
 
@@ -37,7 +39,7 @@ export function signIn(email,password){
             console.log(errorCode);
             console.log(errorMessage);
             console.error("Erro ao autenticar:", errorCode, errorMessage);
-            throw error;
+            throw errorCode;
     });
 }
 
@@ -68,6 +70,7 @@ export function resetPassword(email){
             const errorCode = error.code;
             const errorMessage = error.message;
             console.log("houve algum erro para enviar o email de redefinicao de senha");
+            throw errorCode;
         })
 }
 
@@ -92,3 +95,19 @@ export function delUser(user){
 }
 
 //deleta usuario da base de users da firebase
+
+export function logOut(){
+    signOut(auth)
+        .then(()=>{
+            console.log('Usuario desconectado');
+        })
+        .catch((error)=>{
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.log("Erro ao desconectar usuário:", errorCode);
+            console.log(errorMessage);
+        })
+}
+
+//desconecta usuario da conta
+

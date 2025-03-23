@@ -22,7 +22,4 @@ export {auth};
 //pra testar conexao, so tirar o comentario da proxima linha
 //console.log(app? "Conectado ao firebase":" Sem Conexao");
 
-const email = "";
-const password = "";
-export{email, password};
 //para testes!

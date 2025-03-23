@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "592969987743",
+    "firebase_url": "https://goal-rush-1947d-default-rtdb.firebaseio.com",
+    "project_id": "goal-rush-1947d",
+    "storage_bucket": "goal-rush-1947d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592969987743:android:57065393fcfa2915d414aa",
+        "android_client_info": {
+          "package_name": "com.GoalRushAndroid.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "592969987743-3qik4rq5qs87o4qjciqf61e2nf81khnu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPZ8lYiMEmRHg0wP1uEUfQofrCZ0OEuc0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592969987743-3qik4rq5qs87o4qjciqf61e2nf81khnu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
