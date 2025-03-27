@@ -1,9 +1,10 @@
 import {View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import { useNavigation, useRouter } from 'expo-router';
 import { colors } from '../styles/colors'
 import { Header } from '@/components/header'
 import { Ionicons } from '@expo/vector-icons';
-import GoalModal from '@/components/createGoal';
+import CreateGoal from '@/components/createGoal';
 import Goal from '@/components/goal';
 
 interface GoalType {
@@ -17,19 +18,22 @@ interface GoalType {
 export default function Home(){
     const [modalVisible, setModalVisible] = useState(false);
     const [goals, setGoals] = useState<GoalType[]>([]); // Armazena as metas criadas, e tudo tipado nessa merda
-
+    const navigation = useNavigation();
     const noteColors = Object.values(colors.notes)
 
     //Funcao q eh chamada quando o usuario cria uma meta nova
-    const addGoal = (name: string, description?: string, daysLeft?: string) => {
+    const addGoal = (name: string, description?: string, timeRemaining?: string) => {
         const randomColor = noteColors[Math.floor(Math.random() * noteColors.length)];
-        const newGoal = { id: Date.now(), name, description, daysLeft, color: randomColor };
+        const newGoal = { id: Date.now(), name, description, timeRemaining, color: randomColor };
+
+//aqui pra salvar no banco de dados
+
         setGoals((prevGoals) => [...prevGoals, newGoal]);
         setModalVisible(false);
     };
 
     //func q fecha o modal se cancelar
-    const handleCancelModal = () => {
+    const handleCancel = () => {
         setModalVisible(false)
     }
 
@@ -42,13 +46,15 @@ export default function Home(){
 
             <ScrollView contentContainerStyle={styles.goalContainer}>
                 {goals.map((goal) => (
-                    <Goal 
-                        key={goal.id}
+                    <TouchableOpacity key={goal.id} onPress={() => navigation.navigate('GoalDetails', { goal })}>
+                    <Goal
+                        id={goal.id}
                         name={goal.name}
                         description={goal.description}
                         timeRemaining={goal.timeRemaining}
                         color={goal.color}
                     />
+                </TouchableOpacity>
                 ))}
             </ScrollView>
 
@@ -59,10 +65,10 @@ export default function Home(){
 
 
 
-            <GoalModal
+            <CreateGoal
                 visible={modalVisible}
-                onConfirm={(name, description, timeRemaining) => addGoal(name, description, timeRemaining)}
-                onCancel={handleCancelModal}
+                onConfirm={addGoal}
+                onCancel={handleCancel}
             />
 
         </View>

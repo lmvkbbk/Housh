@@ -1,26 +1,60 @@
-import { View, Text} from 'react-native'
-import React from 'react'
-import { colors } from '@/app/styles/colors'
-import { s } from './styles';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from 'expo-router';
 
-type GoalProps = {
+interface GoalProps {
+    id: number;
     name: string;
     description?: string;
     timeRemaining?: string;
     color: string;
-    teamgoal?: boolean;
+}
+
+const Goal: React.FC<GoalProps> = ({ id, name, description, timeRemaining, color }) => {
+    const navigation = useNavigation();
+
+    const handlePress = () => {
+        navigation.navigate('goalDetails', {
+            goal: { id, name, description, timeRemaining, color },
+        });
+    };
+
+    return (
+        <TouchableOpacity onPress={handlePress} style={[styles.container, { backgroundColor: color }]}>
+            <Text style={styles.title}>{name}</Text>
+            {description && <Text style={styles.description}>{description}</Text>}
+            {timeRemaining && <Text style={styles.timeRemaining}>Tempo restante: {timeRemaining}</Text>}
+        </TouchableOpacity>
+    );
 };
 
-const Goal: React.FC<GoalProps> = ({ name, description, timeRemaining, color }) => {
-    return (
-      <View style={[s.container, { backgroundColor: color }]}>
-        <Text style={s.name}>{name}</Text>
-        {description && <Text style={s.description}>{description}</Text>}
-        <View style={{backgroundColor: colors.black}}>
-          {timeRemaining && <Text style={s.timeRemaining}>{timeRemaining}</Text>}
-        </View>
-      </View>
-    );
-  };
+const styles = StyleSheet.create({
+    container: {
+        padding: 15,
+        marginBottom: 10,
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3, // Para Android
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    description: {
+        fontSize: 14,
+        color: '#fff',
+        marginTop: 5,
+    },
+    timeRemaining: {
+        fontSize: 12,
+        color: '#fff',
+        marginTop: 5,
+    },
+});
 
 export default Goal;
+
