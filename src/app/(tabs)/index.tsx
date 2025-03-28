@@ -45,8 +45,8 @@ export default function Home(){
             </View> 
 
             <ScrollView contentContainerStyle={styles.goalContainer}>
-                {goals.map((goal) => (
-                    <TouchableOpacity key={goal.id} onPress={() => navigation.navigate('GoalDetails', { goal })}>
+                {goals.map((goal,index) => (
+                    <TouchableOpacity key={index} onPress={() => navigation.navigate('[goalDetails]')}>
                     <Goal
                         id={goal.id}
                         name={goal.name}
