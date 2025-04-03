@@ -3,6 +3,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import componentColors from "../../styles/colors";
 
 export default function verificationPage() {
     const {user} = useAuth();
@@ -10,7 +11,7 @@ export default function verificationPage() {
     const router = useRouter();
 
     const teste = () => {
-        router.navigate('/Home');
+        router.replace('/profile/profileConfig');
     }
 
     useEffect(()=>{
@@ -50,7 +51,7 @@ export default function verificationPage() {
                         <Text style={styles.textButton}>Continuar</Text>
                     </TouchableOpacity>
                 ):(
-                    <ActivityIndicator color={"orange"}/>
+                    <ActivityIndicator color={componentColors.textPrimary}/>
                 ) }
         </View>
     )
@@ -59,33 +60,33 @@ export default function verificationPage() {
 const styles=StyleSheet.create({
     container: {
         flex:1,
-        backgroundColor: '#1E1E1E',
+        backgroundColor: componentColors.modalBackground,
         alignItems: 'center',
         justifyContent: 'center',
     },
     title: {
-        color: 'orange',
+        color: componentColors.primary,
         fontSize: 38,
         fontWeight: 'bold',
         padding: 20,
         textAlign: 'center'
     },
     subtitle: {
-        color: 'gray',
+        color: componentColors.textSecondary,
         fontSize: 22,
         paddingHorizontal: 30,
         textAlign: 'center',
         marginBottom: '20%'
     },
     button: {
-        backgroundColor: "#FFA500",
+        backgroundColor: componentColors.primary,
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 12,
         alignItems: "center",
     },
     textButton:{
-        color:'#121212',
+        color: componentColors.textPrimary,
         fontSize: 22, 
         fontWeight: 'bold',
     },

@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import componentColors from "../../styles/colors";
 
 export default function RecoveryEmailSentScreen(){
 
     const router = useRouter();
 
     const handleBackToLogin = () =>{
-        router.navigate('/auth/signin');
+        router.replace('/auth/signin');
     }
 
     return(
@@ -22,19 +23,19 @@ export default function RecoveryEmailSentScreen(){
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#1E1E1E",
+        backgroundColor: componentColors.modalBackground,
         alignItems: 'center',
         justifyContent: 'center',
         padding: 20,
     },
     title: {
-        color: 'orange',
+        color: componentColors.primary,
         fontSize: 32,
         fontWeight: 'bold',
         textAlign: 'left'
     },
     button:{
-        backgroundColor: 'orange',
+        backgroundColor: componentColors.primary,
         paddingVertical: 15,
         paddingHorizontal: 30,
         margin: 50,
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     textButton: {
-        color: '#1E1E1E',
+        color: componentColors.textPrimary,
         fontSize: 18,
         fontWeight: 'bold'
     }

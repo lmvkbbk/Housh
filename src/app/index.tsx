@@ -1,21 +1,20 @@
 import { useAuth } from "@/src/hooks/useAuth";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
+import componentColors from "../styles/colors";
 
 export default function index(){
-    const { user } = useAuth();
-    const router = useRouter();
 
     return(
         <View style={styles.container}>
-            <ActivityIndicator color={'orange'}/>
+            <ActivityIndicator color={componentColors.primary}/>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: componentColors.modalBackground,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center'

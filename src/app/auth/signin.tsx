@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { TextInput, TouchableOpacity, Text, View, ActivityIndicator, StyleSheet, Modal, Alert} from "react-native";
+import { TextInput, TouchableOpacity, Text, View, ActivityIndicator, StyleSheet, Modal, Button} from "react-native";
 import { useRouter } from "expo-router";
 import { signIn } from "@/src/services/authServices";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import componentColors from "../../styles/colors";
 
-export default function login() {
+
+export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -57,7 +60,13 @@ export default function login() {
 
     const handleNewUser = async() =>{
         await setIsModalVisible(!isModalVisible);
-        router.push("/auth/newAccount");
+        const seen = await AsyncStorage.getItem('onboardingSeen');
+        //uso do asyncStorage para guardar uma variavel local que define se o usuario ja viu o carrossel
+        if (seen === 'true') {
+            router.push("/auth/newAccount");
+        }else {
+            router.push('/Presentation');
+        }
     };
 
     return (
@@ -72,13 +81,13 @@ export default function login() {
                     <View style={styles.modalContainer}>
                         <Text style={styles.title}>Login</Text>
                         <TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
-                            <AntDesign name="close" size={30} color="white" style={styles.closeIcon} />
+                            <AntDesign name="close" size={30} color={componentColors.textPrimary} style={styles.closeIcon} />
                         </TouchableOpacity>
     
                         <TextInput
                             style={styles.inputField}
                             placeholder='Email'
-                            placeholderTextColor="#BBBBBB"
+                            placeholderTextColor={componentColors.placeholderText}
                             autoCapitalize="none"
                             autoComplete="email"
                             value={email}
@@ -88,7 +97,7 @@ export default function login() {
                             <TextInput
                                 style={styles.inputPassword}
                                 placeholder='Senha'
-                                placeholderTextColor="#BBBBBB"
+                                placeholderTextColor={componentColors.placeholderText}
                                 secureTextEntry={!passwordVisible}
                                 autoCapitalize="none"
                                 value={password}
@@ -96,7 +105,7 @@ export default function login() {
                             />
 
                             <TouchableOpacity  style={styles.passwordViewer} onPress={() => setPasswordVisible(!passwordVisible)}>
-                                <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={24} color="orange"  />
+                                <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={24} color={componentColors.primary}  />
                             </TouchableOpacity>
                         </View>
 
@@ -104,7 +113,7 @@ export default function login() {
 
                         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                             {isLoading ? (
-                                <ActivityIndicator color="#121212" />
+                                <ActivityIndicator color ={componentColors.textPrimary}  />
                             ) : (
                                 <Text style={styles.buttonText}>Entrar</Text>
                             )}
@@ -121,6 +130,7 @@ export default function login() {
                     </View>
                 </View>
             </Modal>
+            <Button title="SiteMap" onPress={()=>router.push('/_sitemap')}/>
             <Text style={styles.title}>Goal Rush</Text>
             <View style={styles.bottomContainer}>
                 <TouchableOpacity style={styles.emailLoginButton} onPress={() => setIsModalVisible(true)}>
@@ -134,20 +144,20 @@ export default function login() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: componentColors.background,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 20,
     },
     title: {
-        color: '#FFA500',
+        color: componentColors.textPrimary,
         fontSize: 40,
         fontWeight: 'bold',
         marginBottom: 20,
     },
     subtitle: {
-        color: "#AAAAAA",
-        fontSize: 16,
+        color: componentColors.textSecondary,
+        fontSize: 14,
         textAlign: "center",
         width: "100%",
         margin: 10,
@@ -160,7 +170,7 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         width: '90%',
-        backgroundColor: '#1E1E1E',
+        backgroundColor: componentColors.modalBackground,
         borderRadius: 20,
         padding: 20,
         alignItems: 'center',
@@ -176,28 +186,26 @@ const styles = StyleSheet.create({
     },
     inputField: {
         width: '100%',
-        backgroundColor: '#2A2A2A',
         color: 'white',
         borderRadius: 12,
         padding: 12,
         fontSize: 18,
-        borderWidth: 1,
-        borderColor: '#FFA500',
+        borderWidth: 2,
+        borderColor: componentColors.inputBorder,
         marginBottom: 12,
     },
     inputPassword: {
         width: "100%",
-        backgroundColor: "#2C2C2C",
         color: "#FFFFFF",
-        borderColor: "orange",
-        borderWidth: 1,
+        borderColor: componentColors.inputBorder,
+        borderWidth: 2,
         borderRadius: 12,
         fontSize: 18,
         padding: 12,
     },
     loginButton: {
         width: '100%',
-        backgroundColor: '#FFA500',
+        backgroundColor: componentColors.primary,
         padding: 15,
         borderRadius: 12,
         alignItems: 'center',
@@ -206,14 +214,14 @@ const styles = StyleSheet.create({
     },
     emailLoginButton: {
         width: '90%',
-        backgroundColor: '#FFA500',
+        backgroundColor: componentColors.primary,
         padding: 15,
         borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
     },
     buttonText: {
-        color: '#121212',
+        color: componentColors.textPrimary,
         fontSize: 18,
         fontWeight: 'bold',
     },
@@ -228,9 +236,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
     },
     linkText: {
-        color: '#FFA500',
+        color: componentColors.secondary,
         fontSize: 16,
-        fontWeight: 'bold',
     },
     bottomContainer: {
         position: 'absolute',

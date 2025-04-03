@@ -6,7 +6,8 @@ import {
     sendEmailVerification, 
     sendPasswordResetEmail, 
     signInWithEmailAndPassword,
-    signOut
+    signOut,
+    updateProfile
 } from "firebase/auth";
 import { auth } from "../database/firebase.js";
 
@@ -38,7 +39,6 @@ export function signIn(email,password){
             const errorMessage = error.message;
             console.log(errorCode);
             console.log(errorMessage);
-            console.error("Erro ao autenticar:", errorCode, errorMessage);
             throw errorCode;
     });
 }
@@ -106,8 +106,8 @@ export function logOut(){
             const errorMessage = error.message;
             console.log("Erro ao desconectar usuário:", errorCode);
             console.log(errorMessage);
+            throw errorCode;
         })
 }
 
 //desconecta usuario da conta
-

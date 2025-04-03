@@ -3,6 +3,7 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import componentColors from "../../styles/colors";
 
 export default function NewAccount() {
     const [email, setEmail]= useState('');
@@ -34,7 +35,7 @@ export default function NewAccount() {
                     return;
                 }else {
                     await logIn(email, password);
-                    router.push("/verification/verificationPage");
+                    router.replace("/verification/verificationPage");
                 }
             } catch (error) {
                 if (error === 'auth/email-already-in-use'){
@@ -63,21 +64,22 @@ export default function NewAccount() {
                 autoCapitalize="none"
                 autoComplete="email"
                 placeholder='Digite seu e-mail'
-                placeholderTextColor="#BBBBBB"
+                placeholderTextColor={componentColors.placeholderText}
                 value={email}
                 onChangeText={setEmail}
             />
             <View style={styles.passwordContainer}>
                 <TextInput
                 style={styles.inputPassword}
+                autoCapitalize="none"
                 placeholder='Digite sua senha'
-                placeholderTextColor="#BBBBBB"
+                placeholderTextColor={componentColors.placeholderText}
                 secureTextEntry={!passwordVisible}
                 value={password}
                 onChangeText={setPassword}
                 />
                 <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}  style={styles.passwordViewer}>
-                    <Ionicons name={passwordVisible ? "eye-off": "eye"} size={24} color="orange" />
+                    <Ionicons name={passwordVisible ? "eye-off": "eye"} size={24} color={componentColors.primary} />
                 </TouchableOpacity>
             </View>
 
@@ -85,7 +87,7 @@ export default function NewAccount() {
                 <AntDesign 
                 name={hasMinLength ? "checkcircle" : "closecircle"}
                 size={18} 
-                color={hasMinLength ? "#6BAF7D" : "#D95F5F"}
+                color={hasMinLength ? componentColors.correct : componentColors.incorret}
             />
                 <Text style={styles.validationText}>A senha deve ter pelo menos 6 caracteres</Text>
             </View>
@@ -93,7 +95,7 @@ export default function NewAccount() {
                 <AntDesign 
                 name={hasNumbersAndSymbols ? "checkcircle" : "closecircle"}
                 size={18} 
-                color={hasNumbersAndSymbols ? "#6BAF7D" : "#D95F5F"}
+                color={hasNumbersAndSymbols ? componentColors.correct : componentColors.incorret}
             />
                 <Text style={styles.validationText}>A senha deve conter números e símbolos</Text>
             </View>
@@ -103,9 +105,9 @@ export default function NewAccount() {
 
             <TouchableOpacity style={styles.button} onPress={handleUserCadaster} activeOpacity={0.8}>
                 {isLoading ? (
-                    <ActivityIndicator color="#1E1E1E" />
+                    <ActivityIndicator color={componentColors.textPrimary} />
                 ) : (
-                    <AntDesign name="arrowright" size={24} color="#1E1E1E" />
+                    <AntDesign name="arrowright" size={24} color={componentColors.textPrimary} />
                 )}
             </TouchableOpacity>           
         </View>
@@ -115,20 +117,20 @@ export default function NewAccount() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#1E1E1E",
+        backgroundColor: componentColors.modalBackground,
         alignItems: "center",
         justifyContent: "center",
         padding: 20,
     },
     title: {
-        color: "orange",
+        color: componentColors.primary,
         fontSize: 32,
         fontWeight: "bold",
         marginBottom: '20%',
         textAlign: "center",
     },
     titleError: {
-        color: "#D95F5F",
+        color: componentColors.incorret,
         fontSize: 16,
         textAlign: "center",
         width: "95%", 
@@ -136,10 +138,9 @@ const styles = StyleSheet.create({
     },
     input: {
         width: "90%",
-        backgroundColor: "#2C2C2C",
-        color: "#FFFFFF",
-        borderColor: "orange",
-        borderWidth: 1,
+        color: componentColors.textPrimary,
+        borderColor: componentColors.inputBorder,
+        borderWidth: 2,
         borderRadius: 12,
         fontSize: 18,
         padding: 15,
@@ -147,16 +148,15 @@ const styles = StyleSheet.create({
     },
     inputPassword: {
         width: "100%",
-        backgroundColor: "#2C2C2C",
-        color: "#FFFFFF",
-        borderColor: "orange",
-        borderWidth: 1,
+        color: componentColors.textPrimary,
+        borderColor: componentColors.inputBorder,
+        borderWidth: 2,
         borderRadius: 12,
         fontSize: 18,
         padding: 15,
     },
     subtitle: {
-        color: "#AAAAAA",
+        color: componentColors.textSecondary,
         fontSize: 16,
         textAlign: "center",
         width: "95%", 
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 10,
         right: 20,
-        backgroundColor: "#FFA500",
+        backgroundColor: componentColors.primary,
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 12,
@@ -192,8 +192,7 @@ const styles = StyleSheet.create({
     validationText: {
         marginLeft: 5,
         fontSize: 16,
-        color: "#AAAAAA",
+        color: componentColors.textSecondary,
         textAlign: "auto",
-        
     },
 });

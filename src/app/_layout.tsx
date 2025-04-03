@@ -34,6 +34,7 @@ export default function Layout(){
                 <Stack.Screen name="auth/RecoveryEmailSentScreen"/>
 
                 <Stack.Screen name="Home"/>
+                <Stack.Screen name="Presentation"/>
 
                 <Stack.Screen name="verification/verificationPage"/>
 
