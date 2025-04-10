@@ -3,7 +3,7 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import componentColors from "../../styles/colors";
+import componentColors from "../../styles/componentColors";
 
 export default function NewAccount() {
     const [email, setEmail]= useState('');

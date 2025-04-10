@@ -1,17 +1,23 @@
 import { auth } from "@/src/database/firebase";
 import { useAuth } from "@/src/hooks/useAuth";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import componentColors from "../../styles/colors";
+import componentColors from "../../styles/componentColors";
 
 export default function verificationPage() {
     const {user} = useAuth();
     const [isVerified, setIsVerified] = useState(false);
     const router = useRouter();
 
-    const teste = () => {
-        router.replace('/profile/profileConfig');
+    const {path} = useLocalSearchParams();
+
+    const nextStep = () => {
+        if (path){
+            router.replace(path as any);
+        }else {
+            router.replace('/profile/profileConfig');
+        }
     }
 
     useEffect(()=>{
@@ -44,10 +50,10 @@ export default function verificationPage() {
 
     return(
         <View style={styles.container}>
-            <Text style={styles.title}>Enviamos um e-mail para a ativação da sua conta</Text>
+            <Text style={styles.title}>Enviamos um e-mail para a ativação da seu Email</Text>
             <Text style={styles.subtitle}>Por favor, verifique sua caixa de entrada e siga as instruções para concluir o processo</Text>
                 {isVerified ? (
-                    <TouchableOpacity style={styles.button} onPress={teste}>
+                    <TouchableOpacity style={styles.button} onPress={nextStep}>
                         <Text style={styles.textButton}>Continuar</Text>
                     </TouchableOpacity>
                 ):(

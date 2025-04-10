@@ -1,13 +1,14 @@
 import { 
     createUserWithEmailAndPassword, 
     deleteUser, 
-    fetchSignInMethodsForEmail, 
-    getAuth, 
+    EmailAuthProvider, 
+    reauthenticateWithCredential, 
     sendEmailVerification, 
     sendPasswordResetEmail, 
     signInWithEmailAndPassword,
     signOut,
-    updateProfile
+    updateEmail,
+    updatePassword,
 } from "firebase/auth";
 import { auth } from "../database/firebase.js";
 
@@ -19,7 +20,7 @@ export function logIn(email, password){
     })
     .catch((error) => {
         const errorCode = error.code;
-        console.log( errorCode);
+        console.log('error ao adicionar Usuario: ', errorCode);
         throw errorCode;
     });
 }
@@ -36,9 +37,7 @@ export function signIn(email,password){
         })
         .catch((error)=>{
             const errorCode = error.code;
-            const errorMessage = error.message;
-            console.log(errorCode);
-            console.log(errorMessage);
+            console.log('error ao adicionar o Usuario',errorCode);
             throw errorCode;
     });
 }
@@ -53,13 +52,36 @@ export function emailVerification(user){
         })
         .catch((error)=>{
             const errorCode = error.code;
-            const errorMessage = error.message;
-            console.log("Ocorreu algum erro no envio do email de verificacao: ", errorCode, errorMessage);
+            console.log("Ocorreu algum erro no envio do email de verificacao: ", errorCode);
             throw error;
     });
 }
 //cada usuario da base de users da firebase possui uma variavel pra verificacao da conta
 //o email enviado pela funcao sendEmailVerification() tem um link, que dx esssaa variavel true
+
+export async function emailUpdate(user, email){
+    try {
+        console.log('Tentando atualizar email para:', email);
+        console.log('Usuário atual:', user?.email);
+        await updateEmail(user, email);
+        console.log('email atualizado para: ', email);
+    } catch (error) {
+        const errorCode = error.code;
+        console.log(error.message);
+        throw errorCode;
+    }
+}
+
+export async function updateUserPassword(password){
+    try {
+        await updatePassword(auth.currentUser, password);
+        console.log('Sua senha foi alterada!');
+    } catch (error) {
+        const errorCode = error.code;
+        console.log('Erro ao tentar alterar sua senha: '+ errorCode + error.message);
+        throw errorCode;
+    }
+}
 
 export function resetPassword(email){
     return sendPasswordResetEmail(auth, email)
@@ -68,8 +90,7 @@ export function resetPassword(email){
         })
         .catch((error)=>{
             const errorCode = error.code;
-            const errorMessage = error.message;
-            console.log("houve algum erro para enviar o email de redefinicao de senha");
+            console.log("houve algum erro para enviar o email de redefinicao de senha: "+ errorCode);
             throw errorCode;
         })
 }
@@ -87,9 +108,7 @@ export function delUser(user){
         })
         .catch((error)=>{
         const errorCode = error.code;
-        const errorMessage = error.message;
         console.log("Erro ao deletar usuário:", errorCode);
-        console.log(errorMessage);
         throw error;
     });
 }
@@ -103,11 +122,23 @@ export function logOut(){
         })
         .catch((error)=>{
             const errorCode = error.code;
-            const errorMessage = error.message;
             console.log("Erro ao desconectar usuário:", errorCode);
-            console.log(errorMessage);
             throw errorCode;
         })
 }
 
 //desconecta usuario da conta
+
+export async function reauthenticate(email, password, user) {
+    try {
+        const credential = EmailAuthProvider.credential(email, password);
+        await reauthenticateWithCredential(user, credential);
+        console.log('reautenticação efeituada');
+    } catch (error) {
+        const errorCode = error.code;
+        console.log(errorCode);
+        throw errorCode;
+    }
+}
+
+//reautenticacao do usuario, para novo email e nova senha 

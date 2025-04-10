@@ -9,10 +9,9 @@ export function useAuth(){
         const auth = getAuth();
 
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            console.log("Atualizando usuário:", currentUser);
+            console.log("Atualizando usuário");
             setUser(currentUser);
             setLoading(false);
-            console.log(auth.currentUser);
             clearTimeout(timeOut);
         });
 

@@ -1,10 +1,7 @@
-import { useAuth } from "@/src/hooks/useAuth";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { useRouter } from "expo-router";
-import componentColors from "../styles/colors";
+import componentColors from "../styles/componentColors";
 
 export default function index(){
-
     return(
         <View style={styles.container}>
             <ActivityIndicator color={componentColors.primary}/>

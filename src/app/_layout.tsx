@@ -11,10 +11,10 @@ export default function Layout(){
         if (!loading){
             if (user) {
                 console.log("Usuário autenticado, redirecionando para Home...");
-                router.replace("/Home");
+                router.replace("/(tabs)/home");
             } else {
                 console.log("Usuário não autenticado, redirecionando para signin...");
-                router.replace('/auth/signin');
+                router.replace('/auth/sign-in');
             }
         }
     }, [user, loading]);       
@@ -28,12 +28,14 @@ export default function Layout(){
                 headerShown: false,
                 animation: 'fade'
                 }}>
-                <Stack.Screen name="auth/signin" />
-                <Stack.Screen name="auth/newAccount" />
+                <Stack.Screen name="(tabs)"/>
+                <Stack.Screen name="groupDetail"/>
+
+                <Stack.Screen name="auth/sign-in" />
+                <Stack.Screen name="auth/sign-up" />
                 <Stack.Screen name="auth/recoverPassword" />
                 <Stack.Screen name="auth/RecoveryEmailSentScreen"/>
-
-                <Stack.Screen name="Home"/>
+                
                 <Stack.Screen name="Presentation"/>
 
                 <Stack.Screen name="verification/verificationPage"/>

@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { signIn } from "@/src/services/authServices";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import componentColors from "../../styles/colors";
+import componentColors from "../../styles/componentColors";
 
 
 export default function Login() {
@@ -63,7 +63,7 @@ export default function Login() {
         const seen = await AsyncStorage.getItem('onboardingSeen');
         //uso do asyncStorage para guardar uma variavel local que define se o usuario ja viu o carrossel
         if (seen === 'true') {
-            router.push("/auth/newAccount");
+            router.push("/auth/sign-up");
         }else {
             router.push('/Presentation');
         }
@@ -130,7 +130,7 @@ export default function Login() {
                     </View>
                 </View>
             </Modal>
-            <Button title="SiteMap" onPress={()=>router.push('/_sitemap')}/>
+            <Button title="SiteMap" onPress={()=>router.replace('/_sitemap')}/>
             <Text style={styles.title}>Goal Rush</Text>
             <View style={styles.bottomContainer}>
                 <TouchableOpacity style={styles.emailLoginButton} onPress={() => setIsModalVisible(true)}>
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     },
     inputField: {
         width: '100%',
-        color: 'white',
+        color: componentColors.textPrimary,
         borderRadius: 12,
         padding: 12,
         fontSize: 18,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     },
     inputPassword: {
         width: "100%",
-        color: "#FFFFFF",
+        color: componentColors.textPrimary,
         borderColor: componentColors.inputBorder,
         borderWidth: 2,
         borderRadius: 12,

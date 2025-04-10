@@ -1,13 +1,13 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import componentColors from "../../styles/colors";
+import componentColors from "../../styles/componentColors";
 
 export default function RecoveryEmailSentScreen(){
 
     const router = useRouter();
 
     const handleBackToLogin = () =>{
-        router.replace('/auth/signin');
+        router.replace('/auth/sign-in');
     }
 
     return(

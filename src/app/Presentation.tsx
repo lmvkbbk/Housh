@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from "expo-router";
-import componentColors from "../styles/colors";
+import componentColors from "../styles/componentColors";
 
 const {width, height}= Dimensions.get("window");
 
@@ -111,7 +111,7 @@ const PresentantionApp = () => {
 
     const ButtonFinish = async() => {
         await AsyncStorage.setItem('onboardingSeen', 'true'); 
-        router.push('/auth/newAccount');
+        router.push('/auth/sign-up');
     }
 
     return(

@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { resetPassword } from "../../services/authServices";
-import componentColors from "../../styles/colors";
+import componentColors from "../../styles/componentColors";
 
 export default function RecoverPassword(){
     const [isLoading, setIsLoading] = useState(false);
