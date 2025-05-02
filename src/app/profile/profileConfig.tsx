@@ -7,6 +7,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import { useRouter } from "expo-router";
 import componentColors from "../../styles/componentColors";
+import { creatUserDatabase } from "@/src/services/realtime";
 
 
 export default function VerificationPage() {
@@ -114,6 +115,7 @@ export default function VerificationPage() {
                         displayName: name,
                         photoURL: localImagePath
                     })
+                    await creatUserDatabase(auth.currentUser.uid);
                     router.replace('/(tabs)/home');
                 } catch (error) {
                     console.log(error);

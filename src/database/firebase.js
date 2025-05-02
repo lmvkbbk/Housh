@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCZU6myY_MkuvjcWQaq-kZ-ID84ZZZmmYU",
@@ -18,8 +19,9 @@ const app = initializeApp(firebaseConfig);
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage),
 });
+const db = getDatabase(app);
 
-export {app, auth};
+export {app, auth, db};
 
 //sem segredo, inicializacao da conexao com o FIREBASE pra ultilizacao em metodos
 //pra testar conexao, so tirar o comentario da proxima linha

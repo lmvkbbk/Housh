@@ -1,4 +1,4 @@
-const componentColors={
+const componentColors = {
     background: "#121212", // Fundo principal - cinza bem escuro
     modalBackground: "#1E1E1E", // Fundo do modal - um tom um pouco mais claro para destaque
     textPrimary: "#FFFFFF", // Texto principal - branco puro para contraste
@@ -7,9 +7,10 @@ const componentColors={
     inputBorder: "#292929", // Borda dos inputs - cinza escuro para um design limpo
     primary: "#FF8C00", // Botões principais - verde vibrante que transmite confiança e ação
     secondary: "#008CFF", // Mensagens de erro - vermelho forte e chamativo
-    
+
     correct: "#6BAF7D",
-    incorret: "#D95F5F"
+    incorret: "#D95F5F",
+    netral: "#ddd",
 };
 
-export default  componentColors;
+export default componentColors;

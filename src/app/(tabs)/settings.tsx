@@ -28,7 +28,7 @@ export default function Settings() {
                                 <Text style={styles.textButton}>Cancelar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.Button, { backgroundColor: componentColors.incorret }]} onPress={()=>{
-                                delUser(auth.currentUser)
+                                delUser(auth.currentUser);
                                 setIsModalVisible(false);
                             }}>
                                 <Text style={styles.textButton}>Excluir conta</Text>
