@@ -23,13 +23,23 @@ export default function RecoverPassword() {
             await resetPassword(email);
             router.replace("/auth/recoveryEmailSentScreen");
         } catch (error) {
-            console.log("erro no envio do email de recuperacao: ", error);
-            if (error === "auth/missing-email") {
-                setEmail("");
-                setEmailPlaceholder("Email não encontrado");
-            } else if (error === "auth/invalid-email") {
-                setEmail("");
-                setEmailPlaceholder("Email inválido");
+            switch (error) {
+                case "auth/missing-email":
+                    setEmail("");
+                    setEmailPlaceholder("Email não encontrado");
+                    break;
+                case "auth/invalid-email":
+                    setEmail("");
+                    setEmailPlaceholder("Email inválido");
+                    break;
+                case "auth/user-not-found":
+                    setEmail("");
+                    setEmailPlaceholder("E-mail não registrado ");
+                    break;
+                default:
+                    setEmail("");
+                    setEmailPlaceholder("Erro ao enviar o email");
+                    break;
             }
         } finally {
             setIsLoading(false);

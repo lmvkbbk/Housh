@@ -267,7 +267,7 @@ export default function Home() {
                 title="Criar meta"
                 boldText={true}
                 onPress={() => setModalVisible(true)}
-                backgroundColor={theme.modalBackground}
+                backgroundColor={theme.cardAccent}
                 propStyle={styles(theme).fab}
                 textColor={theme.textPrimary}
             />

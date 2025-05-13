@@ -88,7 +88,7 @@ export default function Teams() {
                     title="Criar grupo"
                     boldText={true}
                     onPress={() => setAddGroupModal(true)}
-                    backgroundColor={theme.modalBackground}
+                    backgroundColor={theme.cardAccent}
                     propStyle={styles(theme).fab}
                     textColor={theme.textPrimary}
                 />
@@ -97,7 +97,7 @@ export default function Teams() {
                     title="Entrar em grupo"
                     boldText={true}
                     onPress={() => setEnterGroupModal(true)}
-                    backgroundColor={theme.modalBackground}
+                    backgroundColor={theme.cardAccent}
                     propStyle={styles(theme).fab}
                     textColor={theme.textPrimary}
                 />
