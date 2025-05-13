@@ -14,7 +14,7 @@ export const getRelativeDateInfo = (date: Date) => {
     if (diffDays < -1) {
         return {
             Text: `${Math.abs(diffDays)} dias atras`,
-            Value: Math.abs(diffDays),
+            Value: diffDays,
         }; // Devolve o número de dias
     } else if (diffDays > 1) {
         return {

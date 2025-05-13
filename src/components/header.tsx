@@ -1,46 +1,51 @@
-import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native'
-import componentColors from '@/src/styles/componentColors'
-
-type HeaderProps = {
-  title: string
-}
+import { View, Text, StyleSheet, SafeAreaView, StatusBar } from "react-native";
+import { useTheme } from "../context/contextTheme";
 
 export function Header({ title }: { title: string }) {
-    return (
-      <SafeAreaView style={{ backgroundColor: componentColors.modalBackground, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, }}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor={componentColors.modalBackground}
-        />
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>{title}</Text>
-          <View style={styles.underline} />
-        </View>
-      </SafeAreaView>
-    )
-  }
+    const { theme } = useTheme();
 
-const styles = StyleSheet.create({
-  headerContainer: {
-    backgroundColor: componentColors.modalBackground, 
-    paddingTop: 8,
-    paddingBottom: 15,
-    paddingHorizontal: 25,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    alignItems: 'center',
-  },
-  headerText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: componentColors.textPrimary,
-    letterSpacing: 0.5,
-  },
-  underline: {
-    marginTop: 6,
-    width: 40,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: componentColors.primary,
-  },
-})
+    return (
+        <SafeAreaView style={styles(theme).safeArea}>
+            <StatusBar
+                barStyle={
+                    theme.mode === "dark" ? "light-content" : "dark-content"
+                }
+                backgroundColor={theme.modalBackground}
+            />
+            <View style={styles(theme).headerContainer}>
+                <Text style={styles(theme).headerText}>{title}</Text>
+                <View style={styles(theme).underline} />
+            </View>
+        </SafeAreaView>
+    );
+}
+
+const styles = (theme: any) =>
+    StyleSheet.create({
+        safeArea: {
+            backgroundColor: theme.background,
+            borderBottomLeftRadius: 20,
+            borderBottomRightRadius: 20,
+        },
+        headerContainer: {
+            backgroundColor: theme.modalBackground,
+            paddingBottom: 16,
+            paddingHorizontal: 24,
+            borderBottomLeftRadius: 20,
+            borderBottomRightRadius: 20,
+            alignItems: "center",
+        },
+        headerText: {
+            fontSize: 22,
+            fontWeight: "700",
+            color: theme.textPrimary,
+            letterSpacing: 0.5,
+        },
+        underline: {
+            marginTop: 6,
+            width: 40,
+            height: 3,
+            borderRadius: 2,
+            backgroundColor: theme.primary,
+        },
+    });

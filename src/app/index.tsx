@@ -1,19 +1,23 @@
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import componentColors from "../styles/componentColors";
+import { ThemeProvider, useTheme } from "../context/contextTheme";
 
-export default function index(){
-    return(
-        <View style={styles.container}>
-            <ActivityIndicator color={componentColors.primary}/>
-        </View>
-    )
+export default function index() {
+    const { theme } = useTheme();
+    return (
+        <ThemeProvider>
+            <View style={styles(theme).container}>
+                <ActivityIndicator size={40} color={theme.primary} />
+            </View>
+        </ThemeProvider>
+    );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        backgroundColor: componentColors.modalBackground,
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-})
+const styles = (theme: any) =>
+    StyleSheet.create({
+        container: {
+            backgroundColor: theme.modalBackground,
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+    });

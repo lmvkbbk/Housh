@@ -1,198 +1,167 @@
-import { logIn} from "@/src/services/authServices";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView, Text, StyleSheet, View, Platform } from "react-native";
+import { router, useRouter } from "expo-router";
+import AppInput from "../../components/Inputs/Input";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import componentColors from "../../styles/componentColors";
+import { useTheme } from "../../context/contextTheme";
+import AppInputPassword from "../../components/Inputs/InputPassword";
+import { Theme } from "../../styles/themes";
+import AppLoadingButton from "../../components/Buttons/LoadingButton";
+import PasswordValidation from "../../components/SignUp/PasswordValidation";
+import { logIn } from "@/src/firebase/auth";
+import AppButton from "@/src/components/Buttons/Buttons";
 
-export default function NewAccount() {
-    const [email, setEmail]= useState('');
-    const [password, setPassword]= useState('');
-    const[passwordVisible, setPasswordVisible] = useState(false);
+export default function SignUp() {
+    const route = useRouter();
+    const { theme } = useTheme();
 
-    const [registrationMessage,setRegistrationMessager] = useState('');
-
-    const hasMinLength = password.length >= 6;
-    const hasNumbersAndSymbols = /[0-9]/.test(password) && /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    // variaveis para verificar se a senha tem pelo menos 6 caracteres e se tem números e símbolos
-
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const router = useRouter();
+    const hasMinLength = password.length >= 6;
+    const hasNumbersAndSymbols =
+        /[0-9]/.test(password) && /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    // variaveis para verificar se a senha tem pelo menos 6 caracteres e se tem números e símbolos
 
-    useEffect(()=>{
-        if (hasMinLength && hasNumbersAndSymbols){
-            setRegistrationMessager('');
+    useEffect(() => {
+        if (hasMinLength && hasNumbersAndSymbols) {
+            setErrorMessage("");
         }
-    },[email, password]);
-    // useEffect para retirar alerta do erro quando o usuário tentar o cadastro novamente
+    }, [email, password]);
 
-    const handleUserCadaster = async() => {
-            setIsLoading(true);
-            try {
-                if (!hasMinLength || !hasNumbersAndSymbols){
-                    // fazer alguma forma de mostrar que a senha é fraca, caso prescise
-                    return;
-                }else {
-                    await logIn(email, password);
-                    router.replace("/verification/verificationPage");
-                }
-            } catch (error) {
-                if (error === 'auth/email-already-in-use'){
-                    setEmail('');
-                    setPassword('');
-                    setRegistrationMessager("Email já cadastrado, tente outro ou faça login");
-                }  else if(error === 'auth/weak-password'){
-                    // näo é preciso fazer nada por enquanto, por causa das condições de senha que coloquei
-                    return;
-                }else if(error === 'auth/invalid-email'){
-                    setEmail('');
-                    setPassword('');
-                    setRegistrationMessager("Email inválido, verifique as credenciais");
-                }
-            }finally{
-                setIsLoading(false);
+    const resetCredentials = () => {
+        setEmail("");
+        setPassword("");
+    };
+
+    const handleUserCadaster = async () => {
+        setIsLoading(true);
+        try {
+            if (!hasMinLength || !hasNumbersAndSymbols) {
+                // fazer alguma forma de mostrar que a senha é fraca, caso prescise
+                return;
+            } else {
+                await logIn(email, password);
+                route.replace("/verification/verificationPage");
             }
+        } catch (error) {
+            switch (error) {
+                case "auth/email-already-in-use":
+                    resetCredentials();
+                    return setErrorMessage(
+                        "Email já cadastrado. Tente outro ou faça login.",
+                    );
+                case "auth/invalid-email":
+                    resetCredentials();
+                    return setErrorMessage(
+                        "Email inválido. Verifique suas credenciais.",
+                    );
+                case "auth/weak-password":
+                    return setErrorMessage(
+                        "A senha é muito fraca. Escolha uma mais segura.",
+                    );
+                case "auth/network-request-failed":
+                    return setErrorMessage(
+                        "Erro de conexão. Verifique sua internet.",
+                    );
+                case "auth/too-many-requests":
+                    return setErrorMessage(
+                        "Muitas tentativas falhas. Tente novamente mais tarde.",
+                    );
+                case "auth/internal-error":
+                    return setErrorMessage(
+                        "Erro interno. Tente novamente mais tarde.",
+                    );
+                case "auth/operation-not-allowed":
+                    return setErrorMessage(
+                        "Cadastro de usuários está temporariamente indisponível.",
+                    );
+                case "auth/missing-password":
+                    return setErrorMessage("Digite uma senha para continuar.");
+                default:
+                    console.warn("Erro não tratado:", error);
+                    return setErrorMessage(
+                        "Erro desconhecido. Tente novamente mais tarde.",
+                    );
+            }
+        } finally {
+            setIsLoading(false);
         }
+    };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Novo Por Aqui?</Text>
-
-            <TextInput
-                style={styles.input}
-                autoCapitalize="none"
-                autoComplete="email"
-                placeholder='Digite seu e-mail'
-                placeholderTextColor={componentColors.placeholderText}
+        <SafeAreaView style={styles(theme).container}>
+            <StatusBar style="auto" />
+            <Text style={styles(theme).title}>Novo Por Aqui?</Text>
+            <AppInput
+                icon="mail"
                 value={email}
                 onChangeText={setEmail}
+                placeholder="Digite seu e-mail"
+                secureText={false}
+                autoComplete="email"
             />
-            <View style={styles.passwordContainer}>
-                <TextInput
-                style={styles.inputPassword}
-                autoCapitalize="none"
-                placeholder='Digite sua senha'
-                placeholderTextColor={componentColors.placeholderText}
-                secureTextEntry={!passwordVisible}
+            <AppInputPassword
+                icon={true}
                 value={password}
                 onChangeText={setPassword}
-                />
-                <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}  style={styles.passwordViewer}>
-                    <Ionicons name={passwordVisible ? "eye-off": "eye"} size={24} color={componentColors.primary} />
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.validationRow}>
-                <AntDesign 
-                name={hasMinLength ? "checkcircle" : "closecircle"}
-                size={18} 
-                color={hasMinLength ? componentColors.correct : componentColors.incorret}
+                placeholder="Digite sua senha"
             />
-                <Text style={styles.validationText}>A senha deve ter pelo menos 6 caracteres</Text>
-            </View>
-            <View style={styles.validationRow}>
-                <AntDesign 
-                name={hasNumbersAndSymbols ? "checkcircle" : "closecircle"}
-                size={18} 
-                color={hasNumbersAndSymbols ? componentColors.correct : componentColors.incorret}
+            {errorMessage && (
+                <Text style={styles(theme).errorText}>{errorMessage}</Text>
+            )}
+            <PasswordValidation
+                hasMinLength={hasMinLength}
+                hasNumbersAndSymbols={hasNumbersAndSymbols}
             />
-                <Text style={styles.validationText}>A senha deve conter números e símbolos</Text>
-            </View>
+            <Text style={styles(theme).subtitle}>
+                Escolha uma senha forte para proteger sua conta
+            </Text>
 
-            <Text style={styles.subtitle}>Escolha uma senha forte para proteger sua conta.</Text>
-            <Text style={styles.titleError}>{registrationMessage}</Text>
+            <AppLoadingButton
+                isLoading={isLoading}
+                onPress={handleUserCadaster}
+                title="Cadastrar"
+                icon="arrow-redo"
+            />
 
-            <TouchableOpacity style={styles.button} onPress={handleUserCadaster} activeOpacity={0.8}>
-                {isLoading ? (
-                    <ActivityIndicator color={componentColors.textPrimary} />
-                ) : (
-                    <AntDesign name="arrowright" size={24} color={componentColors.textPrimary} />
-                )}
-            </TouchableOpacity>           
-        </View>
+            <AppButton
+                title="Ja tenho uma Conta"
+                onPress={() => route.push("/auth/sign-in")}
+                textColor={theme.secondary}
+            />
+        </SafeAreaView>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: componentColors.modalBackground,
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 20,
-    },
-    title: {
-        color: componentColors.primary,
-        fontSize: 32,
-        fontWeight: "bold",
-        marginBottom: '20%',
-        textAlign: "center",
-    },
-    titleError: {
-        color: componentColors.incorret,
-        fontSize: 16,
-        textAlign: "center",
-        width: "95%", 
-        padding: 10,
-    },
-    input: {
-        width: "90%",
-        color: componentColors.textPrimary,
-        borderColor: componentColors.inputBorder,
-        borderWidth: 2,
-        borderRadius: 12,
-        fontSize: 18,
-        padding: 15,
-        marginBottom: 15,
-    },
-    inputPassword: {
-        width: "100%",
-        color: componentColors.textPrimary,
-        borderColor: componentColors.inputBorder,
-        borderWidth: 2,
-        borderRadius: 12,
-        fontSize: 18,
-        padding: 15,
-    },
-    subtitle: {
-        color: componentColors.textSecondary,
-        fontSize: 16,
-        textAlign: "center",
-        width: "95%", 
-        padding: 10,
-    },
-    button: {
-        position: 'absolute',
-        bottom: 10,
-        right: 20,
-        backgroundColor: componentColors.primary,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 12,
-        alignItems: "center",
-    },
-    passwordContainer: {
-        width: "90%",
-        flexDirection: "row",
-        alignItems: "center",
-        alignContent: "center",
-        justifyContent: "space-between",
-    },
-    passwordViewer: {
-        position: "absolute",
-        right: 20,
-    },
-    validationRow: {
-        width: "85%", 
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 10,
-    },
-    validationText: {
-        marginLeft: 5,
-        fontSize: 16,
-        color: componentColors.textSecondary,
-        textAlign: "auto",
-    },
-});
+const styles = (theme: Theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: theme.modalBackground,
+        },
+        title: {
+            fontSize: 32,
+            fontWeight: "bold",
+            color: theme.primary,
+            marginBottom: 40,
+            textAlign: "center",
+        },
+        subtitle: {
+            color: theme.textSecondary,
+            marginTop: 4,
+            margin: 20,
+            textAlign: "center",
+        },
+        errorText: {
+            fontSize: 14,
+            color: theme.incorrect,
+            textAlign: "center",
+            marginVertical: 8,
+            marginTop: 4,
+        },
+    });

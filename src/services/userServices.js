@@ -1,5 +1,5 @@
-import { get, push, ref, set, update } from "firebase/database";
-import { db } from "../database/firebase";
+import { get, push, ref, set, update, remove } from "firebase/database";
+import { db } from "@/src/firebase/config";
 
 //cria um usuario no banco de dados
 export async function creatUserDatabase(userUID) {
@@ -58,10 +58,13 @@ export async function addGroupInUser(userUID, groupKey) {
 export async function addGoalInUser(userUid, goalData) {
     try {
         const userRef = ref(db, `Users/${userUid}/Goals`);
-        const goalName = goalData.name;
+        const goalName = goalData.id;
 
         if (goalData.timeRemaining === undefined) {
             goalData.timeRemaining = null;
+        }
+        if (goalData.description === undefined) {
+            goalData.description = null;
         }
 
         await update(userRef, {
@@ -83,6 +86,54 @@ export async function addGoalInUser(userUid, goalData) {
         status: 'pendente',
     });
 */
+
+//remove uma meta do usuario
+export async function removeGoalInUser(userUID, goalId) {
+    try {
+        const goalRef = ref(db, `Users/${userUID}/Goals/${goalId}`);
+        await remove(goalRef);
+        console.log("Meta removida com sucesso");
+    } catch (error) {
+        console.error("Erro ao remover meta:", error);
+    }
+}
+
+//aatuliza o status de uma meta do usuario
+export async function updateStatusGoalInUser(userUID, goalId, newStatus) {
+    try {
+        const goalRef = ref(db, `Users/${userUID}/Goals/${goalId}`);
+
+        await update(goalRef, { status: newStatus });
+
+        console.log("Status atualizado com sucesso!");
+    } catch (error) {
+        console.log("Erro ao atualizar o status da meta:", error);
+    }
+}
+
+/*tive que usar timestamp pra evitar o uso do fuso UTC
+  mas atualiza o lastDate do realtime para o dia atual
+  menos o tempo do fuso UTC*/
+export async function updateLastDateGoalInUser(userUID, goalId) {
+    try {
+        const now = new Date();
+        const localDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+        );
+
+        const localTimestamp = localDate.getTime();
+
+        const goalRef = ref(db, `Users/${userUID}/Goals/${goalId}`);
+
+        await update(goalRef, { lastDate: localTimestamp });
+
+        console.log("ultima data atualizada com sucesso!");
+    } catch (error) {
+        console.log("Erro ao atualizar a ultima data da meta:", error);
+    }
+}
 
 //adiciona uma quantidade de pontos ao usuario
 export async function updateUserPoints(userUID, pointsIncrease) {

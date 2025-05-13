@@ -1,8 +1,15 @@
-import { auth } from '@/src/database/firebase';
-import { createGroupDatabase } from '@/src/services/realtime';
-import colors from '@/src/styles/colors';
-import React, { useState } from 'react';
-import { View, Text, TextInput, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { auth } from "@/src/firebase/config";
+import { createGroupDatabase } from "@/src/services/realtime";
+import colors from "@/src/styles/colors";
+import React, { useState } from "react";
+import {
+    View,
+    Text,
+    TextInput,
+    Modal,
+    TouchableOpacity,
+    StyleSheet,
+} from "react-native";
 
 type CreateGroupModalProps = {
     visible: boolean;
@@ -10,13 +17,17 @@ type CreateGroupModalProps = {
     onCancel: () => void;
 };
 
-const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ visible, onConfirm, onCancel }) => {
-    const [name, setName] = useState('');
+const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
+    visible,
+    onConfirm,
+    onCancel,
+}) => {
+    const [name, setName] = useState("");
 
-    const handleConfirm = async() => {
+    const handleConfirm = async () => {
         if (!name.trim()) return;
         onConfirm(name);
-        setName('');
+        setName("");
         await createGroupDatabase(name, auth.currentUser?.uid);
     };
 
@@ -33,10 +44,16 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ visible, onConfirm,
                         onChangeText={setName}
                     />
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.buttonCancel} onPress={onCancel}>
+                        <TouchableOpacity
+                            style={styles.buttonCancel}
+                            onPress={onCancel}
+                        >
                             <Text style={styles.buttonText}>Cancelar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.buttonConfirm} onPress={handleConfirm}>
+                        <TouchableOpacity
+                            style={styles.buttonConfirm}
+                            onPress={handleConfirm}
+                        >
                             <Text style={styles.buttonText}>Criar</Text>
                         </TouchableOpacity>
                     </View>
@@ -51,25 +68,25 @@ export default CreateGroupModal;
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
     },
     container: {
-        width: '90%',
+        width: "90%",
         backgroundColor: colors.white,
         padding: 20,
         borderRadius: 10,
-        alignItems: 'center',
+        alignItems: "center",
     },
     title: {
         fontSize: 22,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         color: colors.black,
         marginBottom: 10,
     },
     input: {
-        width: '100%',
+        width: "100%",
         height: 40,
         borderWidth: 1,
         borderColor: colors.grey2,
@@ -79,7 +96,7 @@ const styles = StyleSheet.create({
         color: colors.black,
     },
     buttonContainer: {
-        flexDirection: 'row',
+        flexDirection: "row",
         marginTop: 10,
         gap: 10,
     },
@@ -98,6 +115,6 @@ const styles = StyleSheet.create({
     buttonText: {
         color: colors.white,
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
 });

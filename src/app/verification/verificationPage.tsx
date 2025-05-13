@@ -1,99 +1,102 @@
-import { auth } from "@/src/database/firebase";
+import { auth } from "@/src/firebase/config";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import componentColors from "../../styles/componentColors";
+import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import AppButton from "@/src/components/Buttons/Buttons";
+import { useTheme } from "@/src/context/contextTheme";
 
 export default function verificationPage() {
-    const {user} = useAuth();
+    const { user } = useAuth();
     const [isVerified, setIsVerified] = useState(false);
     const router = useRouter();
-
-    const {path} = useLocalSearchParams();
+    const { path } = useLocalSearchParams();
+    const { theme } = useTheme();
 
     const nextStep = () => {
-        if (path){
+        if (path) {
             router.replace(path as any);
-        }else {
-            router.replace('/profile/profileConfig');
+        } else {
+            router.replace("/profile/profileConfig");
         }
-    }
+    };
 
-    useEffect(()=>{
+    useEffect(() => {
         const checkVerification = async () => {
             try {
-                await auth.currentUser?.reload();  // atualiza o estado do usuário atual com os dados mais recentes
+                await auth.currentUser?.reload(); // atualiza o estado do usuário atual com os dados mais recentes
                 if (auth.currentUser?.emailVerified) {
                     setIsVerified(true);
                 } else {
-                    console.log('O e-mail ainda não foi verificado.');
+                    console.log("O e-mail ainda não foi verificado.");
                 }
             } catch (error) {
-                console.error('Erro ao verificar o e-mail:', error);
+                console.error("Erro ao verificar o e-mail:", error);
             }
         };
-        
+
         if (isVerified) return; // se o e-mail já foi verificado, não precisa verificar novamente, use effect é encerrado
 
         checkVerification();
 
-        const intervalId = setInterval(()=>{
+        const intervalId = setInterval(() => {
             checkVerification();
-        },5000);
+        }, 5000);
         // verifica se o e-mail foi verificado a cada 5 segundos
 
-        return()=> clearInterval(intervalId);
-        // limpa o timer quando a função terminar de ser executada
-    },[user]);
-    // useEffect que executa enquanto tiver um usuário autenticado
+        return () => clearInterval(intervalId);
+    }, [user]);
 
-    return(
-        <View style={styles.container}>
-            <Text style={styles.title}>Enviamos um e-mail para a ativação da seu Email</Text>
-            <Text style={styles.subtitle}>Por favor, verifique sua caixa de entrada e siga as instruções para concluir o processo</Text>
-                {isVerified ? (
-                    <TouchableOpacity style={styles.button} onPress={nextStep}>
-                        <Text style={styles.textButton}>Continuar</Text>
-                    </TouchableOpacity>
-                ):(
-                    <ActivityIndicator color={componentColors.textPrimary}/>
-                ) }
+    return (
+        <View style={styles(theme).container}>
+            <Text style={styles(theme).title}>
+                Enviamos um e-mail para a ativação do seu Email
+            </Text>
+            <Text style={styles(theme).subtitle}>
+                Por favor, verifique sua caixa de entrada e siga as instruções
+                para concluir o processo
+            </Text>
+            {isVerified ? (
+                <AppButton
+                    onPress={nextStep}
+                    title="Continuar"
+                    backgroundColor={theme.primary}
+                    boldText={true}
+                    icon="lock-open"
+                />
+            ) : (
+                <ActivityIndicator color={theme.textPrimary} size={32} />
+            )}
         </View>
-    )
+    );
 }
 
-const styles=StyleSheet.create({
-    container: {
-        flex:1,
-        backgroundColor: componentColors.modalBackground,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    title: {
-        color: componentColors.primary,
-        fontSize: 38,
-        fontWeight: 'bold',
-        padding: 20,
-        textAlign: 'center'
-    },
-    subtitle: {
-        color: componentColors.textSecondary,
-        fontSize: 22,
-        paddingHorizontal: 30,
-        textAlign: 'center',
-        marginBottom: '20%'
-    },
-    button: {
-        backgroundColor: componentColors.primary,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 12,
-        alignItems: "center",
-    },
-    textButton:{
-        color: componentColors.textPrimary,
-        fontSize: 22, 
-        fontWeight: 'bold',
-    },
-})
+const styles = (theme: any) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.modalBackground,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        title: {
+            color: theme.primary,
+            fontSize: 32,
+            fontWeight: "bold",
+            padding: 20,
+            textAlign: "center",
+        },
+        subtitle: {
+            color: theme.textSecondary,
+            fontSize: 16,
+            paddingHorizontal: 32,
+            textAlign: "center",
+            marginBottom: "20%",
+        },
+    });

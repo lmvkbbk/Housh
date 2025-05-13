@@ -1,13 +1,12 @@
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { useEffect, useState } from "react";
+import { auth } from "../firebase/config";
 
-export function useAuth(){
+export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(()=> {
-        const auth = getAuth();
-
+    useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             console.log("Atualizando usuário");
             setUser(currentUser);
@@ -15,15 +14,15 @@ export function useAuth(){
             clearTimeout(timeOut);
         });
 
-        const timeOut = setInterval(()=>{
+        const timeOut = setInterval(() => {
             setLoading(false);
-            console.log('fim de tempo', loading);
-        },3000);
+            console.log("fim de tempo", loading);
+        }, 3000);
 
-        return() => {
+        return () => {
             unsubscribe();
             clearTimeout(timeOut);
-        }
+        };
     }, []);
-    return{user, loading};
+    return { user, loading };
 }

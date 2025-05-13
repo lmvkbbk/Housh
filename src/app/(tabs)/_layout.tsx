@@ -1,57 +1,68 @@
-import { Tabs } from 'expo-router';
-import {FontAwesome} from '@expo/vector-icons';
-import colors from '@/src/styles/colors';
-import componentColors from '@/src/styles/componentColors';
+import { Tabs } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
+import { useTheme } from "@/src/context/contextTheme";
+import { TouchableWithoutFeedback } from "react-native";
 
 export default function Layout() {
+    const { theme } = useTheme();
+    return (
+        <Tabs
+            screenOptions={{
+                sceneStyle: {
+                    backgroundColor: theme.background,
+                },
+                headerShown: false,
+                tabBarShowLabel: false,
+                tabBarActiveTintColor: theme.primary,
+                tabBarInactiveTintColor: theme.textSecondary,
+                tabBarHideOnKeyboard: true,
+                tabBarStyle: {
+                    height: 55,
+                    backgroundColor: theme.modalBackground,
+                },
+                tabBarItemStyle: {
+                    borderRadius: 15,
+                    paddingVertical: 10,
+                },
+            }}
+        >
+            <Tabs.Screen
+                name="home"
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <FontAwesome name="home" size={size} color={color} />
+                    ),
+                }}
+            />
 
-  return (
-    <Tabs
-      screenOptions={{
-        sceneStyle: {
-          backgroundColor: colors.black
-        },
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: componentColors.primary,
-        tabBarInactiveTintColor: colors.grey2,
-        tabBarHideOnKeyboard: true,
-        tabBarStyle:{
-          height: 55,
-          backgroundColor: componentColors.background,
-          borderTopWidth: 0,
-        },
-        tabBarItemStyle:{
-          borderRadius: 15,
-          paddingVertical: 10,
-        }
-      }}
-    >
-      <Tabs.Screen name="home"
-      options={{
-        tabBarIcon: ({color, size}) =>(<FontAwesome name="home" size={size} color={color} />)
-      }}
-      />
+            <Tabs.Screen
+                name="teams"
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <FontAwesome name="group" size={size} color={color} />
+                    ),
+                }}
+            />
 
-      <Tabs.Screen name="teams"
-      options={{
-        tabBarIcon: ({color, size}) =>(<FontAwesome name="group" size={size} color={color} />)
-      }}
-      />
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <FontAwesome name="user" size={size} color={color} />
+                    ),
+                }}
+            />
 
-      <Tabs.Screen name="profile"
-      options={{
-        tabBarIcon: ({color, size}) =>(<FontAwesome name="user" size={size} color={color} />)
-      }}
-      />
-
-      <Tabs.Screen name="settings"
-      options={{
-        tabBarIcon: ({color, size}) =>(<FontAwesome name="gear" size={size} color={color} />)
-      }}
-      />
-    </Tabs>
-  )
+            <Tabs.Screen
+                name="settings"
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <FontAwesome name="gear" size={size} color={color} />
+                    ),
+                }}
+            />
+        </Tabs>
+    );
 }
 
 // tabBarbadge em options (notificacao pronta)

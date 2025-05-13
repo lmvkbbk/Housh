@@ -11,7 +11,9 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "src/hooks/useAuth.js",
+    "src/services/realtime.js",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "src/hooks/useAuth.js", "src/services/realtime.js"  ]
+  ]
 }

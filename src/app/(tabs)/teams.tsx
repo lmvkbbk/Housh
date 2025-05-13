@@ -10,12 +10,13 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import colors from "@/src/styles/colors";
-import { Header } from "react-native/Libraries/NewAppScreen";
-import GroupCard from "@/src/components/goalGroup";
-import GpCodeModal from "@/src/components/groupCode";
-import CreateGroupModal from "@/src/components/createGroup";
+import { Header } from "@/src/components/header";
+import { useTheme } from "@/src/context/contextTheme";
+import AppButton from "@/src/components/Buttons/Buttons";
+import GroupCard from "@/src/components/GoalsGroups/goalGroup";
+import GpCodeModal from "@/src/components/GoalsGroups/groupCode";
+import CreateGroupModal from "@/src/components/GoalsGroups/createGroup";
 
-// Tipo do grupo
 interface GroupType {
     id: string;
     name: string;
@@ -30,6 +31,7 @@ export default function Teams() {
     const [groups, setGroups] = useState<GroupType[]>([]);
 
     const noteColors = Object.values(colors.notes);
+    const { theme } = useTheme();
 
     const handleAddGroup = (name: string) => {
         const randomColor =
@@ -47,14 +49,14 @@ export default function Teams() {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={styles(theme).container}>
             <Header title="Teams" />
 
-            <View style={styles.titleContainer}>
-                <Text style={styles.title}>Grupos</Text>
+            <View style={styles(theme).titleContainer}>
+                <Text style={styles(theme).title}>Grupos</Text>
             </View>
 
-            <ScrollView contentContainerStyle={styles.groupContainer}>
+            <ScrollView contentContainerStyle={styles(theme).groupContainer}>
                 {groups.map((group) => (
                     <TouchableOpacity key={group.id}>
                         <GroupCard
@@ -68,25 +70,6 @@ export default function Teams() {
                 ))}
             </ScrollView>
 
-            <View style={styles.fabContainer}>
-                <TouchableOpacity
-                    style={styles.fab}
-                    onPress={() => setAddGroupModal(true)}
-                >
-                    <Ionicons name="add" size={32} color={colors.white} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.fab}
-                    onPress={() => setEnterGroupModal(true)}
-                >
-                    <Ionicons
-                        name="key-outline"
-                        size={32}
-                        color={colors.white}
-                    />
-                </TouchableOpacity>
-            </View>
-
             <GpCodeModal
                 visible={enterGroupModal}
                 onConfirm={(code) => setEnterGroupModal(false)}
@@ -98,43 +81,63 @@ export default function Teams() {
                 onConfirm={handleAddGroup}
                 onCancel={() => setAddGroupModal(false)}
             />
+
+            <View style={styles(theme).fabContainer}>
+                <AppButton
+                    icon="people"
+                    title="Criar grupo"
+                    boldText={true}
+                    onPress={() => setAddGroupModal(true)}
+                    backgroundColor={theme.modalBackground}
+                    propStyle={styles(theme).fab}
+                    textColor={theme.textPrimary}
+                />
+                <AppButton
+                    icon="log-in-outline"
+                    title="Entrar em grupo"
+                    boldText={true}
+                    onPress={() => setEnterGroupModal(true)}
+                    backgroundColor={theme.modalBackground}
+                    propStyle={styles(theme).fab}
+                    textColor={theme.textPrimary}
+                />
+            </View>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        width: "100%",
-    },
-    titleContainer: {
-        width: "100%",
-        justifyContent: "flex-start",
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: colors.white,
-        marginTop: 30,
-        paddingLeft: 15,
-    },
-    groupContainer: {
-        width: "100%",
-        paddingBottom: 80,
-    },
-    fabContainer: {
-        flex: 1,
-        justifyContent: "flex-end",
-        alignItems: "flex-end",
-        gap: 10,
-        paddingRight: 16,
-        paddingBottom: 16,
-    },
-    fab: {
-        padding: 15,
-        borderRadius: 35,
-        backgroundColor: colors.grey2,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-});
+const styles = (theme: any) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            width: "100%",
+        },
+        titleContainer: {
+            width: "100%",
+            justifyContent: "flex-start",
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: "bold",
+            color: theme.textPrimary,
+            marginTop: 30,
+            paddingLeft: 15,
+        },
+        groupContainer: {
+            width: "100%",
+            paddingBottom: 80,
+        },
+        fabContainer: {
+            flex: 1,
+            justifyContent: "flex-end",
+            alignItems: "flex-end",
+            paddingRight: 16,
+            paddingBottom: 16,
+        },
+        fab: {
+            alignSelf: "flex-end",
+            borderRadius: 35,
+            borderWidth: 1,
+            borderColor: theme.primary,
+        },
+    });

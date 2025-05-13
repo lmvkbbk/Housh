@@ -1,104 +1,89 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { resetPassword } from "../../services/authServices";
-import componentColors from "../../styles/componentColors";
+import { StyleSheet, Text, View } from "react-native";
+import { resetPassword } from "../../firebase/auth";
+import { useTheme } from "@/src/context/contextTheme";
+import AppLoadingButton from "@/src/components/Buttons/LoadingButton";
+import AppInput from "@/src/components/Inputs/Input";
+import { Theme } from "@/src/styles/themes";
 
-export default function RecoverPassword(){
-    const [isLoading, setIsLoading] = useState(false);
-    const [email, setEmail] = useState('');
-    const [emailPlaceholder, setEmailPlaceholder] = useState('Digite seu e-mail');
-
+export default function RecoverPassword() {
     const router = useRouter();
+    const { theme } = useTheme();
 
-    const handleSendRecoveryEmail= async() => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [email, setEmail] = useState("");
+    const [emailPlaceholder, setEmailPlaceholder] =
+        useState("Digite seu e-mail");
+
+    const handleSendRecoveryEmail = async () => {
         setIsLoading(true);
         try {
             // fazer uma funcao que verifica se tem um usuario com esse email com base o banco de dados
             await resetPassword(email);
-            router.replace('/auth/RecoveryEmailSentScreen');
+            router.replace("/auth/recoveryEmailSentScreen");
         } catch (error) {
-            console.log("erro no envio do email de recuperacao: ",error);
-            if(error === 'auth/missing-email'){
-                setEmail('');
+            console.log("erro no envio do email de recuperacao: ", error);
+            if (error === "auth/missing-email") {
+                setEmail("");
                 setEmailPlaceholder("Email não encontrado");
-            }else if(error === 'auth/invalid-email'){
-                setEmail('');
+            } else if (error === "auth/invalid-email") {
+                setEmail("");
                 setEmailPlaceholder("Email inválido");
             }
-        } finally{
+        } finally {
             setIsLoading(false);
         }
-    }
+    };
 
-    return(
-        <View style={styles.container}>
-            <Text style={styles.title}>Esqueceu sua senha?</Text>
-            <TextInput style={styles.input}
-                placeholder={emailPlaceholder}
-                placeholderTextColor={componentColors.placeholderText}
-                autoCapitalize="none"
-                autoComplete="email"
+    return (
+        <View style={styles(theme).container}>
+            <Text style={styles(theme).title}>Esqueceu sua senha?</Text>
+
+            <AppInput
+                icon="mail"
                 value={email}
                 onChangeText={setEmail}
+                placeholder={emailPlaceholder}
+                autoComplete="email"
+                autoCapitalize="none"
             />
-            <Text style={styles.subtitle}>Digite o email que pertence a conta para que possamos recupera-la</Text>
-            <TouchableOpacity style={styles.button}onPress={handleSendRecoveryEmail}>
-                {isLoading? (
-                    <ActivityIndicator color={componentColors.textPrimary}/>
-                ):(
-                    <Text style={styles.buttonText}>Enviar</Text>
-                )}
-            </TouchableOpacity>
+            <Text style={styles(theme).subtitle}>
+                Digite o email que pertence a conta para que possamos
+                recupera-la
+            </Text>
+            <AppLoadingButton
+                isLoading={isLoading}
+                onPress={handleSendRecoveryEmail}
+                title="Enviar"
+                icon="send"
+            />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: componentColors.modalBackground,
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 20,
-    },
-    title: {
-        color: componentColors.primary,
-        fontSize: 32,
-        fontWeight: "bold",
-        marginBottom: '20%',
-        textAlign: "center",
-    },
-    input: {
-        width: "100%",
-        color: componentColors.textPrimary,
-        borderColor: componentColors.inputBorder,
-        borderWidth: 2,
-        borderRadius: 12,
-        fontSize: 18,
-        padding: 15,
-        marginBottom: 15,
-    },
-    subtitle: {
-        color: componentColors.textSecondary,
-        fontSize: 16,
-        textAlign: "center",
-        marginBottom: 30,
-        width: "80%",
-    },
-    button: {
-        position: 'absolute',
-        bottom: 10,
-        right: 20,
-        backgroundColor: componentColors.primary,
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 12,
-        alignItems: "center",
-    },
-    buttonText: {
-        color: componentColors.textPrimary,
-        fontSize: 18,
-        fontWeight: "bold",
-    }
-});
+const styles = (theme: Theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.modalBackground,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+        },
+        title: {
+            color: theme.primary,
+            fontSize: 32,
+            fontWeight: "bold",
+            marginBottom: 40,
+            textAlign: "center",
+        },
+        subtitle: {
+            color: theme.textSecondary,
+            fontSize: 16,
+            textAlign: "center",
+            marginTop: 20,
+            marginBottom: 40,
+            width: "80%",
+        },
+    });
