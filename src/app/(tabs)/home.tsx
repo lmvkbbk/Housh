@@ -26,6 +26,7 @@ import { useTheme } from "@/src/context/contextTheme";
 import AppButton from "@/src/components/Buttons/Buttons";
 import { getRelativeDateInfo } from "@/src/utils/dateUtils";
 import EmptyGoals from "@/src/components/EmptyGoals";
+import { scheduleLocalNotification } from '@/src/services/notifications';
 
 interface GoalType {
     id: string;
@@ -187,7 +188,6 @@ export default function Home() {
     return (
         <View style={styles(theme).container}>
             <Header title="Suas Metas" />
-
             {goals.length > 0 ? (
                 <ScrollView
                     refreshControl={
@@ -271,6 +271,12 @@ export default function Home() {
                 propStyle={styles(theme).fab}
                 textColor={theme.textPrimary}
             />
+            
+            <AppButton
+                title="teste"
+                onPress={() => scheduleLocalNotification("Meta pendente!", "Sua meta termina em 1 hora!", 15)}
+            />
+            
 
             <CreateGoal
                 visible={modalVisible}
