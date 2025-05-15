@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import {
     View,
     Text,
@@ -16,21 +16,49 @@ import {
     MaterialIcons,
 } from "@expo/vector-icons";
 import colors from "@/src/styles/colors";
-import { auth } from "@/src/firebase/config";
+import { ref, onValue } from 'firebase/database';
+import { auth, db } from "@/src/firebase/config";
 import { router } from "expo-router";
 import ImageProfileModal from "@/src/components/ImageProfile/ImageProfileModal";
 import { useTheme } from "@/src/context/contextTheme";
 import { PointsCard } from "@/src/components/Profile/PointCard";
 import { StatCard } from "@/src/components/Profile/StatCard";
 
+
 export default function Perfil() {
     const userName = auth.currentUser?.displayName || "Usuário";
     const userImage = auth.currentUser?.photoURL || null;
 
-    //colocar dps pra sair pegando no db, o sistema de pontuacao n e uma prioridade agora
-    const userPoints = 0;
-    const userGroups = 0;
-    const userGoals = 0;
+    // Logica de atualizar os dados do usuario 
+    const [userPoints, setUserPoints] = useState(0);
+    const [userGoals, setUserGoals] = useState(0);
+    const [daysInSequence, setDaysInSequence] = useState(0);
+    const [TeamsNumber, setTeamsNumber] = useState(0);
+    const[loading, setLoading] = useState(true);
+
+    useEffect(() => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+
+    const userRef = ref(db, `Users/${uid}`);
+
+    const unsubscribe = onValue(userRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setUserPoints(data.Points || 0);
+        setUserGoals(data.GoalsPoints || 0);
+        setDaysInSequence(data.DaysInSequence || 0);
+        setTeamsNumber(data.TeamsNumber || 0);
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error("Erro ao ouvir dados do usuário:", error);
+      setLoading(false);
+    });
+
+    // Remove listener dps de desmontar o componente
+    return () => unsubscribe();
+  }, []);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const imageExists = userImage ? true : false;
@@ -95,7 +123,7 @@ export default function Perfil() {
                         theme={theme}
                         icon="flash"
                         color="orange"
-                        text={`${userPoints} dias de sequência`}
+                        text={`${daysInSequence} dias de sequência`}
                     />
 
                     <View style={styles(theme).statsContainer}>
@@ -120,7 +148,7 @@ export default function Perfil() {
                                     color="#2196F3"
                                 />
                             }
-                            number={userGroups}
+                            number={TeamsNumber}
                             label="Grupos"
                         />
                     </View>

@@ -17,6 +17,8 @@ import {
     removeGoalInUser,
     updateLastDateGoalInUser,
     updateStatusGoalInUser,
+    updateUserGoalPoints,
+    updateUserPoints
 } from "@/src/services/userServices";
 import { Header } from "@/src/components/header";
 import Goal from "@/src/components/Goals/goal";
@@ -75,6 +77,8 @@ export default function Home() {
             goalId,
             "Concluida",
         );
+        await updateUserGoalPoints(auth.currentUser?.uid);
+        await updateUserPoints(auth.currentUser?.uid);
         ToastAndroid.show("Meta concluída!", ToastAndroid.SHORT);
         await loadGoals();
     };

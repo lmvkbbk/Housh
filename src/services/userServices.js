@@ -139,7 +139,10 @@ export async function updateLastDateGoalInUser(userUID, goalId) {
 export async function updateUserPoints(userUID, pointsIncrease) {
     try {
         const userRef = ref(db, `Users/${userUID}`);
-        await update(userRef, { Points: pointsIncrease });
+        const userData = await get(userRef);
+        const currentPoints = userData.val()?.Points || 0;
+        const PointsIncrese = currentPoints + 1;
+        await update(userRef, { Points: PointsIncrese });
     } catch (error) {
         console.log("Error ao atualizar os pontos do usuario");
         throw error;
@@ -152,7 +155,7 @@ export async function updateUserGoalPoints(userUID) {
         const userRef = ref(db, `Users/${userUID}`);
         const userData = await get(userRef);
         const currentGoalsPoints = userData.val()?.GoalsPoints || 0;
-        const goalsPointsIncrese = currentGoalsPoints++;
+        const goalsPointsIncrese = currentGoalsPoints + 1;
         await update(userRef, { GoalsPoints: goalsPointsIncrese });
     } catch (error) {
         console.log("Error ao atualizar os pontos de metas do usuario", error);
@@ -166,7 +169,7 @@ export async function updateUserTeamsNumber(userUID) {
         const userRef = ref(db, `Users/${userUID}`);
         const userData = await get(userRef);
         const currentTeamsNumber = userData.val()?.TeamsNumber || 0;
-        const teamsNumberIncrease = currentTeamsNumber++;
+        const teamsNumberIncrease = currentTeamsNumber + 1;
         await update(userRef, { TeamsNumber: teamsNumberIncrease });
     } catch (error) {
         console.log(
@@ -183,7 +186,7 @@ export async function updateUserDaysSequency(userUID) {
         const userRef = ref(db, `Users/${userUID}`);
         const userData = await get(userRef);
         const currentDays = userData.val()?.DaysInSequence || 0;
-        const daysInSequenceIncrease = currentDays++;
+        const daysInSequenceIncrease = currentDays + 1;
         await update(userRef, { DaysInSequence: daysInSequenceIncrease });
     } catch (error) {
         console.log("Erro ao atualizar a sequencia de dias do usuario", error);
