@@ -18,7 +18,7 @@ import {
     updateLastDateGoalInUser,
     updateStatusGoalInUser,
     updateUserGoalPoints,
-    updateUserPoints
+    updateUserPoints,
 } from "@/src/services/userServices";
 import { Header } from "@/src/components/header";
 import Goal from "@/src/components/Goals/goal";
@@ -28,7 +28,6 @@ import { useTheme } from "@/src/context/contextTheme";
 import AppButton from "@/src/components/Buttons/Buttons";
 import { getRelativeDateInfo } from "@/src/utils/dateUtils";
 import EmptyGoals from "@/src/components/EmptyGoals";
-import { scheduleLocalNotification } from '@/src/services/notifications';
 
 interface GoalType {
     id: string;
@@ -62,7 +61,6 @@ export default function Home() {
     );
 
     const { theme } = useTheme();
-
     const [refreshing, setRefreshing] = useState(false);
 
     const removeGoal = async (goalId: string) => {
@@ -71,14 +69,34 @@ export default function Home() {
         //notificacao pra confirmar que a meta foi removida
         ToastAndroid.show("Meta removida!", ToastAndroid.SHORT);
     };
-    const completeGoal = async (goalId: String) => {
+    const completeGoal = async (goal: GoalType) => {
         await updateStatusGoalInUser(
             auth.currentUser?.uid,
-            goalId,
+            goal.id,
             "Concluida",
         );
+        console.log(goal.id);
+        let points = 0;
+        if (goal.timeRemaining) {
+            const deadline: any = getRelativeDateInfo(
+                goal.timeRemaining,
+            )?.Value;
+            if (deadline < 3) {
+                points = 1;
+            } else if (deadline > 3 && deadline < 7) {
+                points = 2;
+            } else if (deadline > 7 && deadline < 14) {
+                points = 3;
+            } else {
+                points = 5;
+            }
+        } else if (goal.selectedDays) {
+            points = 1;
+        }
+
+        await updateUserPoints(auth.currentUser?.uid, points);
         await updateUserGoalPoints(auth.currentUser?.uid);
-        await updateUserPoints(auth.currentUser?.uid);
+
         ToastAndroid.show("Meta concluída!", ToastAndroid.SHORT);
         await loadGoals();
     };
@@ -90,7 +108,7 @@ export default function Home() {
     };
 
     //reinicia ou atualiza o status das metas
-    const verifyGoals = (loadedGoals: GoalType[]) => {
+    const verifyGoals = async (loadedGoals: GoalType[]) => {
         //timestamp pra remover o fuso
         const today = new Date();
         const timezoneOffset = today.getTimezoneOffset() * 60000;
@@ -158,7 +176,7 @@ export default function Home() {
     }, []);
 
     //Funcao q eh chamada quando o usuario cria uma meta nova
-    const addGoal = (
+    const addGoal = async (
         name: string,
         description?: string,
         timeRemaining?: Date,
@@ -167,6 +185,7 @@ export default function Home() {
     ) => {
         const randomColor =
             noteColors[Math.floor(Math.random() * noteColors.length)];
+
         const newGoal = {
             id: Date.now().toString(),
             name,
@@ -179,9 +198,8 @@ export default function Home() {
         };
 
         //atualiza o usuario com a nova meta
-        addGoalInUser(auth.currentUser?.uid, newGoal);
-
-        loadGoals();
+        await addGoalInUser(auth.currentUser?.uid, newGoal);
+        await loadGoals();
         setModalVisible(false);
     };
 
@@ -225,7 +243,7 @@ export default function Home() {
                                         selectedDays={goal.selectedDays}
                                         color={goal.color}
                                         onRemove={() => removeGoal(goal.id)}
-                                        onComplete={() => completeGoal(goal.id)}
+                                        onComplete={() => completeGoal(goal)}
                                     />
                                 </TouchableOpacity>
                             ))}
@@ -255,7 +273,7 @@ export default function Home() {
                                         selectedDays={goal.selectedDays}
                                         color={goal.color}
                                         onRemove={() => removeGoal(goal.id)}
-                                        onComplete={() => completeGoal(goal.id)}
+                                        onComplete={() => completeGoal(goal)}
                                     />
                                 </TouchableOpacity>
                             ))}
@@ -275,12 +293,6 @@ export default function Home() {
                 propStyle={styles(theme).fab}
                 textColor={theme.textPrimary}
             />
-            
-            <AppButton
-                title="teste"
-                onPress={() => scheduleLocalNotification("Meta pendente!", "Sua meta termina em 1 hora!", 15)}
-            />
-            
 
             <CreateGoal
                 visible={modalVisible}

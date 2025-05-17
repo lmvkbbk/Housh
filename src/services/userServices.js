@@ -136,15 +136,15 @@ export async function updateLastDateGoalInUser(userUID, goalId) {
 }
 
 //adiciona uma quantidade de pontos ao usuario
-export async function updateUserPoints(userUID, pointsIncrease) {
+export async function updateUserPoints(userUID, pointsIncrese) {
     try {
         const userRef = ref(db, `Users/${userUID}`);
         const userData = await get(userRef);
         const currentPoints = userData.val()?.Points || 0;
-        const PointsIncrese = currentPoints + 1;
-        await update(userRef, { Points: PointsIncrese });
+        const newPoints = currentPoints + pointsIncrese;
+        await update(userRef, { Points: newPoints });
     } catch (error) {
-        console.log("Error ao atualizar os pontos do usuario");
+        console.log("Error ao atualizar os pontos do usuario", error);
         throw error;
     }
 }

@@ -61,7 +61,8 @@ export default function Goal({
         const timeOut = setTimeout(() => {
             setShowButtons(false);
         }, 5000);
-    }, [showButtons == true]);
+        return () => clearTimeout(timeOut);
+    }, [showButtons]);
 
     return (
         <TouchableOpacity
