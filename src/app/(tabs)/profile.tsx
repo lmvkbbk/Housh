@@ -5,12 +5,10 @@ import {
     Image,
     StyleSheet,
     TouchableOpacity,
-    Modal,
     ScrollView,
 } from "react-native";
-import { Header } from "../../components/header";
+import { Header } from "../../components/Headers/header";
 import {
-    AntDesign,
     Ionicons,
     MaterialCommunityIcons,
     MaterialIcons,
@@ -21,6 +19,13 @@ import { router } from "expo-router";
 import ImageProfileModal from "@/src/components/ImageProfile/ImageProfileModal";
 import { useTheme } from "@/src/context/contextTheme";
 import { StatCard } from "@/src/components/Profile/StatCard";
+import AchievementIconSquare from "@/src/components/Profile/AchievementIconSquare";
+import { AchievementKey } from "@/src/constants/Achievements";
+
+type Achievement = {
+    name: string;
+    unlocked: boolean;
+};
 
 export default function Perfil() {
     const userName = auth.currentUser?.displayName || "Usuário";
@@ -30,34 +35,34 @@ export default function Perfil() {
     const [userPoints, setUserPoints] = useState(0);
     const [userGoals, setUserGoals] = useState(0);
     const [daysInSequence, setDaysInSequence] = useState(0);
-    const [TeamsNumber, setTeamsNumber] = useState(0);
+    const [teamsNumber, setTeamsNumber] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [achievements, setAchievements] = useState<Achievement[]>([]);
 
     useEffect(() => {
         const uid = auth.currentUser?.uid;
         if (!uid) return;
 
         const userRef = ref(db, `Users/${uid}`);
-
-        const unsubscribe = onValue(
-            userRef,
-            (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    setUserPoints(data.Points || 0);
-                    setUserGoals(data.GoalsPoints || 0);
-                    setDaysInSequence(data.DaysInSequence || 0);
-                    setTeamsNumber(data.TeamsNumber || 0);
+        const unsubscribe = onValue(userRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                setUserPoints(data.Points || 0);
+                setUserGoals(data.GoalsPoints || 0);
+                setDaysInSequence(data.DaysInSequence || 0);
+                setTeamsNumber(Object.keys(data.Groups || {}).length);
+                if (data.userAchievements) {
+                    const achievementsArray = Object.entries(
+                        data.userAchievements,
+                    ).map(([key, value]) => ({
+                        name: key,
+                        unlocked: Boolean(value),
+                    }));
+                    setAchievements(achievementsArray);
                 }
-                setLoading(false);
-            },
-            (error) => {
-                console.error("Erro ao ouvir dados do usuário:", error);
-                setLoading(false);
-            },
-        );
-
-        // Remove listener dps de desmontar o componente
+            }
+        });
+        // Remove o listener ao desmontar o componente
         return () => unsubscribe();
     }, []);
 
@@ -77,29 +82,27 @@ export default function Perfil() {
                 imageExists={imageExists}
             />
 
-            <TouchableOpacity
-                style={styles(theme).editButton}
-                onPress={() => router.push("/profile/editProfile")}
-            >
-                <MaterialCommunityIcons
-                    name="account-edit"
-                    size={22}
-                    color={theme.textPrimary}
-                />
-            </TouchableOpacity>
-
             <View style={styles(theme).contentBox}>
-                <ScrollView
-                    contentContainerStyle={styles(theme).scrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
+                <View style={styles(theme).scrollContent}>
+                    <TouchableOpacity
+                        style={styles(theme).editButton}
+                        onPress={() => router.push("/profile/editProfile")}
+                    >
+                        <MaterialCommunityIcons
+                            name="account-edit"
+                            size={22}
+                            color={theme.textPrimary}
+                        />
+                    </TouchableOpacity>
                     <View style={styles(theme).imageContainer}>
                         <TouchableOpacity
                             onPress={() => setIsModalVisible(true)}
                         >
                             {userImage ? (
                                 <Image
-                                    source={{ uri: userImage }}
+                                    source={{
+                                        uri: userImage + "?" + new Date(),
+                                    }}
                                     style={styles(theme).image}
                                 />
                             ) : (
@@ -145,64 +148,38 @@ export default function Perfil() {
                         />
                         <StatCard
                             icon={
-                                <MaterialCommunityIcons
-                                    name="account-group"
+                                <Ionicons
+                                    name="people"
                                     size={26}
                                     color="#2196F3"
                                 />
                             }
-                            number={TeamsNumber}
+                            number={teamsNumber}
                             text="Grupos"
                         />
                     </View>
 
                     <View style={styles(theme).achievementsContainer}>
-                        <TouchableOpacity
-                            style={styles(theme).achievementsHeader}
+                        <Text style={styles(theme).achievementsTitle}>
+                            Conquistas
+                        </Text>
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                width: "110%",
+                                flexWrap: "wrap",
+                            }}
                         >
-                            <Text style={styles(theme).achievementsTitle}>
-                                Conquistas
-                            </Text>
-                            <MaterialIcons
-                                name="chevron-right"
-                                size={24}
-                                color={theme.textPrimary}
-                            />
-                        </TouchableOpacity>
-
-                        <View style={styles(theme).achievementsList}>
-                            <TouchableOpacity
-                                style={styles(theme).achievementsItem}
-                            >
-                                <AntDesign
-                                    name="plus"
-                                    size={22}
-                                    color={theme.textPrimary}
+                            {achievements.map(({ name, unlocked }) => (
+                                <AchievementIconSquare
+                                    key={name}
+                                    achievementKey={name as AchievementKey}
+                                    unlocked={unlocked}
                                 />
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles(theme).achievementsItem}
-                            >
-                                <AntDesign
-                                    name="plus"
-                                    size={22}
-                                    color={theme.textPrimary}
-                                />
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles(theme).achievementsItem}
-                            >
-                                <AntDesign
-                                    name="plus"
-                                    size={22}
-                                    color={theme.textPrimary}
-                                />
-                            </TouchableOpacity>
+                            ))}
                         </View>
                     </View>
-                </ScrollView>
+                </View>
             </View>
         </View>
     );
@@ -257,8 +234,8 @@ const styles = (theme: any) =>
         },
         editButton: {
             position: "absolute",
-            right: 30,
-            top: 85,
+            right: 10,
+            top: 10,
             backgroundColor: theme.cardAccent,
             borderRadius: 20,
             padding: 8,

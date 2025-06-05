@@ -1,18 +1,58 @@
-import { get, push, ref, set, update, remove } from "firebase/database";
-import { db } from "@/src/firebase/config";
+import { get, ref, set, update, remove } from "firebase/database";
+import { auth, db } from "@/src/firebase/config";
 
 //cria um usuario no banco de dados
 export async function creatUserDatabase(userUID) {
     try {
         const userRef = ref(db, `Users/${userUID}`);
         await set(userRef, {
+            name: auth.currentUser.displayName,
             Points: 0,
             GoalsPoints: 0,
             TeamsNumber: 0,
             DaysInSequence: 0,
+            CreateAt: new Date().toISOString(),
+            GoalsCompleted: 0,
+            GoalsCreatedInGroup: 0,
         });
     } catch (error) {
         console.log("Error, usuario nao registrado", error);
+        throw error;
+    }
+}
+
+export const checkIfUserIsInFirst100 = async (userId) => {
+    console.log("caarregando");
+    const db = getDatabase();
+    const usersRef = ref(db, "Users");
+    console.log("referencia");
+    const first100Query = query(
+        usersRef,
+        orderByChild("CreatedAt"),
+        limitToFirst(100),
+    );
+    console.log("pegou vei");
+    const snapshot = await get(first100Query);
+
+    if (!snapshot.exists()) return false;
+    console.log("varificando");
+    const data = snapshot.val();
+    const isInFirst100 = Object.keys(data).includes(userId);
+    console.log("foi");
+    return isInFirst100;
+};
+
+export async function getNameUser(userUID) {
+    const userRef = ref(db, `Users/${userUID}/name`);
+    const name = await get(userRef);
+    return name.exists() ? name.val() : null;
+}
+
+export async function setNameUser(userUID, name) {
+    try {
+        const userRef = ref(db, `Users/${userUID}/name`);
+        await set(userRef, name);
+    } catch (error) {
         throw error;
     }
 }
@@ -21,14 +61,14 @@ export async function creatUserDatabase(userUID) {
 export const getUserData = async (userUID) => {
     const userRef = ref(db, `Users/${userUID}`);
     const dataUser = await get(userRef);
-    return dataUser ? Object.keys(dataUser.val()) : null;
+    return dataUser ? dataUser.val() : null;
 };
 
 //retorna grupos de um usuario, com todos os dados
 export const getUserGroups = async (userUID) => {
     const userRef = ref(db, `Users/${userUID}/Groups`);
-    const groups = await get(userRef);
-    return groups.exists() ? Object.keys(groups.val()) : null;
+    const groupsUser = await get(userRef);
+    return groupsUser.exists() ? Object.keys(groupsUser.val()) : null;
 };
 
 //retorna metas de um usuario, com todos os dados
@@ -36,6 +76,12 @@ export const getUserGoals = async (userUID) => {
     const userRef = ref(db, `Users/${userUID}/Goals`);
     const goals = await get(userRef);
     return goals.exists() ? goals.val() : null;
+};
+
+export const getGoalUser = async (userUID, goalid) => {
+    const userRef = ref(db, `Users/${userUID}/Goals/${goalid}`);
+    const goal = await get(userRef);
+    return goal.exists() ? goal.val() : null;
 };
 
 //salva key do grupo dentro do usuario
@@ -87,6 +133,26 @@ export async function addGoalInUser(userUid, goalData) {
     });
 */
 
+export async function updateGoalInUser(userUid, goalData) {
+    try {
+        const userRef = ref(db, `Users/${userUid}/Goals/${goalData.id}`);
+
+        if (goalData.timeRemaining === undefined) {
+            goalData.timeRemaining = null;
+        }
+        if (goalData.description === undefined) {
+            goalData.description = null;
+        }
+        await update(userRef, goalData);
+    } catch (error) {
+        console.log(
+            "Nao foi possivel atualizar a meta no banco de dados",
+            error,
+        );
+        throw error;
+    }
+}
+
 //remove uma meta do usuario
 export async function removeGoalInUser(userUID, goalId) {
     try {
@@ -98,14 +164,22 @@ export async function removeGoalInUser(userUID, goalId) {
     }
 }
 
-//aatuliza o status de uma meta do usuario
+export async function removeUserFromGroup(userUID, groupCode) {
+    try {
+        const memberRef = ref(db, `goalGroups/${groupCode}/members/${userUID}`);
+        await remove(memberRef);
+        console.log(`Usuário ${userUID} removido do grupo ${groupCode}`);
+    } catch (error) {
+        console.error("Erro ao remover usuário do grupo:", error);
+    }
+}
+
+//atualiza o status de uma meta do usuario
 export async function updateStatusGoalInUser(userUID, goalId, newStatus) {
     try {
         const goalRef = ref(db, `Users/${userUID}/Goals/${goalId}`);
 
         await update(goalRef, { status: newStatus });
-
-        console.log("Status atualizado com sucesso!");
     } catch (error) {
         console.log("Erro ao atualizar o status da meta:", error);
     }
@@ -128,8 +202,6 @@ export async function updateLastDateGoalInUser(userUID, goalId) {
         const goalRef = ref(db, `Users/${userUID}/Goals/${goalId}`);
 
         await update(goalRef, { lastDate: localTimestamp });
-
-        console.log("ultima data atualizada com sucesso!");
     } catch (error) {
         console.log("Erro ao atualizar a ultima data da meta:", error);
     }
@@ -159,6 +231,38 @@ export async function updateUserGoalPoints(userUID) {
         await update(userRef, { GoalsPoints: goalsPointsIncrese });
     } catch (error) {
         console.log("Error ao atualizar os pontos de metas do usuario", error);
+        throw error;
+    }
+}
+
+export async function updateGoalsCompleted(userUID) {
+    try {
+        const userRef = ref(db, `Users/${userUID}`);
+        const userData = await get(userRef);
+        const currentGoalsPoints = userData.val()?.GoalsCompleted || 0;
+        const goalsPointsIncrese = currentGoalsPoints + 1;
+        await update(userRef, { GoalsCompleted: goalsPointsIncrese });
+    } catch (error) {
+        console.log(
+            "Error ao atualizar o numero de metas completas do usuario",
+            error,
+        );
+        throw error;
+    }
+}
+
+export async function updateGoalsCreatedInGroup(userUID) {
+    try {
+        const userRef = ref(db, `Users/${userUID}`);
+        const userData = await get(userRef);
+        const currentGoalsPoints = userData.val()?.GoalsCreatedInGroup || 0;
+        const goalsPointsIncrese = currentGoalsPoints + 1;
+        await update(userRef, { GoalsCreatedInGroup: goalsPointsIncrese });
+    } catch (error) {
+        console.log(
+            "Error ao atualizar o numero de metas criadas em grupo",
+            error,
+        );
         throw error;
     }
 }

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Text, StyleSheet, TouchableOpacity, View, Alert } from "react-native";
-import { useRouter } from "expo-router";
-import { FontAwesome5 } from "@expo/vector-icons";
+import { Text, StyleSheet, TouchableOpacity, View } from "react-native";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { getRelativeDateInfo } from "@/src/utils/dateUtils";
 import { useTheme } from "@/src/context/contextTheme";
-import AppDaysGoal from "./DaysGoal";
 import AppButton from "../Buttons/Buttons";
+import { getNameUser } from "@/src/services/userServices";
+import WeekdayIndicator from "./WeekdayIndicator ";
+import { auth } from "@/src/firebase/config";
+import { onTaskCompleted } from "@/src/services/userProgress";
 
 interface selectedDays {
     dom: boolean;
@@ -17,78 +19,153 @@ interface selectedDays {
     sab: boolean;
 }
 
-interface GoalProps {
-    id: string;
-    name: string;
+interface GoalCardProps {
+    title: string;
     description?: string;
     timeRemaining?: Date;
     status?: string;
     selectedDays?: selectedDays;
     color: string;
+    user?: string;
+    inGroup: boolean;
+    edit?: boolean;
+    complete?: boolean;
+    trash?: boolean;
+    takeOn?: () => void;
+    onEdit?: () => void;
     onRemove: () => void;
     onComplete: () => void;
 }
 
-export default function Goal({
-    id,
-    name,
+export default function GoalCard({
+    title,
     description,
     timeRemaining,
     status,
     selectedDays,
     color,
+    user,
+    inGroup,
+    edit,
+    complete,
+    trash,
+    takeOn,
+    onEdit,
     onRemove,
     onComplete,
-}: GoalProps) {
-    const router = useRouter();
+}: GoalCardProps) {
     const { theme } = useTheme();
 
-    const [showButtons, setShowButtons] = useState(false);
+    const [userName, setUserName] = useState("");
+    const [isActionBarVisible, setIsActionBarVisible] = useState(false);
 
-    const todayInWeek = new Date().getDay();
+    const currentWeekdayIndex = new Date().getDay();
 
     const handleRemove = () => {
-        setShowButtons(false);
+        setIsActionBarVisible(false);
         onRemove();
     };
-    const handleComplete = () => {
-        setShowButtons(false);
+
+    const handleComplete = async () => {
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+            await onTaskCompleted(uid);
+        }
+        setIsActionBarVisible(false);
         onComplete();
+    };
+
+    const assignGoalToUser = () => {
+        setIsActionBarVisible(false);
+        if (takeOn) {
+            takeOn();
+        }
+    };
+    const openGoalEditor = () => {
+        setIsActionBarVisible(false);
+        if (onEdit) {
+            onEdit();
+        }
     };
 
     //faz os rapidButtons sairem dps de 5 segundos
     useEffect(() => {
         const timeOut = setTimeout(() => {
-            setShowButtons(false);
+            setIsActionBarVisible(false);
         }, 5000);
+        const fetchAssigneeName = async () => {
+            const name = await getNameUser(user);
+            setUserName(name);
+        };
+
+        fetchAssigneeName();
         return () => clearTimeout(timeOut);
-    }, [showButtons]);
+    }, [isActionBarVisible, user]);
 
     return (
         <TouchableOpacity
-            onPress={() => setShowButtons(!showButtons)}
+            onPress={() => {
+                if (!inGroup) {
+                    setIsActionBarVisible(!isActionBarVisible);
+                    return;
+                }
+
+                if (status !== "Concluida") {
+                    setIsActionBarVisible(!isActionBarVisible);
+                }
+            }}
             activeOpacity={0.7}
             style={[styles(theme).container, { borderColor: color }]}
         >
-            {showButtons && (
-                <View style={styles(theme).rapidButtons}>
-                    {status !== "Concluida" && status !== "Atrasada" && (
+            {isActionBarVisible && (
+                <View
+                    style={[
+                        styles(theme).actionBar,
+                        user === "open" && { paddingRight: 10 },
+                    ]}
+                >
+                    {user === "open" && (
                         <AppButton
-                            icon="checkmark-circle"
-                            textColor={theme.correct}
-                            onPress={handleComplete}
+                            icon="hand-left-outline"
+                            title="Assumir meta"
+                            boldText
+                            textColor={theme.primary}
+                            onPress={assignGoalToUser}
                         />
                     )}
 
-                    <AppButton
-                        icon="trash"
-                        textColor={theme.incorrect}
-                        onPress={handleRemove}
-                    />
+                    {edit && (
+                        <AppButton
+                            icon="document-text-outline"
+                            textColor={theme.textSecondary}
+                            onPress={openGoalEditor}
+                        />
+                    )}
+
+                    {complete && (
+                        <View>
+                            {status !== "Concluida" &&
+                                status !== "Atrasada" && (
+                                    <AppButton
+                                        icon="checkmark-circle"
+                                        textColor={theme.correct}
+                                        onPress={handleComplete}
+                                    />
+                                )}
+                        </View>
+                    )}
+
+                    {trash && (
+                        <AppButton
+                            icon="trash"
+                            textColor={theme.incorrect}
+                            onPress={handleRemove}
+                        />
+                    )}
                 </View>
             )}
 
-            <Text style={styles(theme).title}>{name}</Text>
+            <Text style={styles(theme).title}>{title}</Text>
 
             {description && (
                 <Text style={styles(theme).description}>{description}</Text>
@@ -110,44 +187,44 @@ export default function Goal({
                 )}
                 {selectedDays && (
                     <View style={styles(theme).daysContainer}>
-                        <AppDaysGoal
-                            today={todayInWeek}
+                        <WeekdayIndicator
+                            today={currentWeekdayIndex}
                             day={0}
                             title="D"
                             active={selectedDays.dom}
                         />
-                        <AppDaysGoal
-                            today={todayInWeek}
+                        <WeekdayIndicator
+                            today={currentWeekdayIndex}
                             day={1}
                             title="S"
                             active={selectedDays.seg}
                         />
-                        <AppDaysGoal
-                            today={todayInWeek}
+                        <WeekdayIndicator
+                            today={currentWeekdayIndex}
                             day={2}
                             title="T"
                             active={selectedDays.ter}
                         />
-                        <AppDaysGoal
-                            today={todayInWeek}
+                        <WeekdayIndicator
+                            today={currentWeekdayIndex}
                             day={3}
                             title="Q"
                             active={selectedDays.qua}
                         />
-                        <AppDaysGoal
-                            today={todayInWeek}
+                        <WeekdayIndicator
+                            today={currentWeekdayIndex}
                             day={4}
                             title="Q"
                             active={selectedDays.qui}
                         />
-                        <AppDaysGoal
-                            today={todayInWeek}
+                        <WeekdayIndicator
+                            today={currentWeekdayIndex}
                             day={5}
                             title="S"
                             active={selectedDays.sex}
                         />
-                        <AppDaysGoal
-                            today={todayInWeek}
+                        <WeekdayIndicator
+                            today={currentWeekdayIndex}
                             day={6}
                             title="S"
                             active={selectedDays.sab}
@@ -189,6 +266,17 @@ export default function Goal({
                         >
                             {status}
                         </Text>
+                    </View>
+                )}
+                {userName && (
+                    <View style={styles(theme).userView}>
+                        <Ionicons
+                            name="person-circle-outline"
+                            size={20}
+                            color={theme.textPrimary}
+                            style={{ marginRight: 6 }}
+                        />
+                        <Text style={styles(theme).userTitle}>{userName}</Text>
                     </View>
                 )}
             </View>
@@ -241,7 +329,7 @@ const styles = (theme: any) =>
             fontSize: 13,
             color: theme.textSecondary,
         },
-        rapidButtons: {
+        actionBar: {
             position: "absolute",
             right: 0,
             flexDirection: "row",
@@ -260,5 +348,20 @@ const styles = (theme: any) =>
             flexDirection: "row",
             justifyContent: "center",
             alignContent: "center",
+        },
+        userView: {
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.primary,
+            paddingVertical: 6,
+            paddingHorizontal: 10,
+            borderRadius: 12,
+            marginTop: 6,
+            alignSelf: "flex-start",
+        },
+        userTitle: {
+            fontWeight: "bold",
+            color: theme.textPrimary,
+            fontSize: 14,
         },
     });

@@ -7,7 +7,6 @@ import {
     TouchableOpacity,
     StatusBar,
 } from "react-native";
-import AppButton from "../Buttons/Buttons";
 import { useTheme } from "@/src/context/contextTheme";
 
 interface Props {

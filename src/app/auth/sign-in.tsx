@@ -1,6 +1,12 @@
-import { View, StyleSheet, SafeAreaView, Button } from "react-native";
+import {
+    View,
+    StyleSheet,
+    SafeAreaView,
+    StatusBar,
+    Image,
+    Text,
+} from "react-native";
 import { useTheme } from "../../context/contextTheme";
-import { StatusBar } from "expo-status-bar";
 import { Theme } from "../../styles/themes";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
@@ -87,13 +93,48 @@ export default function SignIn() {
 
     return (
         <SafeAreaView style={styles(theme).container}>
-            <View style={{ flex: 1, position: "absolute", bottom: 40 }}>
-                <StatusBar style="auto" />
-                <Button title="Trocar Tema" onPress={() => toggleTheme()} />
-                <Button
-                    title="Site Map"
-                    onPress={() => router.push("/_sitemap")}
+            <StatusBar
+                barStyle={
+                    theme.mode === "dark" ? "light-content" : "dark-content"
+                }
+                backgroundColor={theme.modalBackground}
+            />
+            <AppButton
+                icon="sunny"
+                title="Trocar tema"
+                onPress={toggleTheme}
+                propStyle={{ position: "absolute", top: 5 }}
+            />
+            <View
+                style={{
+                    backgroundColor: "#F0F0F0",
+                    borderRadius: 80,
+                    margin: 5,
+                }}
+            >
+                <Image
+                    source={require("@/assets/images/icon.png")}
+                    style={{
+                        width: 300,
+                        height: 300,
+                        alignSelf: "center",
+                        margin: 10,
+                    }}
                 />
+            </View>
+            <Text
+                style={{
+                    color: theme.textPrimary,
+                    fontWeight: "bold",
+                    padding: 40,
+                    fontSize: 38,
+                    textAlign: "center",
+                }}
+            >
+                Organize seus objetivos, supere desafios e conquiste mais com
+                seu grupo!
+            </Text>
+            <View style={{ flex: 1, position: "absolute", bottom: 40 }}>
                 <AppButton
                     widthButton={"100%"}
                     icon="mail"

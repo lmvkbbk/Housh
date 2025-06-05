@@ -1,11 +1,5 @@
 import React, { ComponentProps, useState } from "react";
-import {
-    TextInput,
-    StyleSheet,
-    View,
-    TouchableOpacity,
-    Dimensions,
-} from "react-native";
+import { TextInput, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/src/context/contextTheme";
 

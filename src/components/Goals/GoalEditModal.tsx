@@ -1,48 +1,50 @@
-import { addDays, getRelativeDateInfo } from "@/src/utils/dateUtils";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { Component, useCallback, useEffect, useState } from "react";
+import { useTheme } from "@/src/context/contextTheme";
 import {
-    View,
-    Text,
-    TextInput,
     Modal,
-    TouchableOpacity,
+    Text,
+    View,
     StyleSheet,
     StatusBar,
+    ScrollView,
 } from "react-native";
-import Slider from "@react-native-community/slider";
-import { useTheme } from "@/src/context/contextTheme";
+import AppButton from "../Buttons/Buttons";
+import AppLoadingButton from "../Buttons/LoadingButton";
 import AppInput from "../Inputs/Input";
 import AppSelectionButton from "../Buttons/SelectionButton";
-import AppButton from "../Buttons/Buttons";
+import { useEffect, useRef, useState } from "react";
+import Slider from "@react-native-community/slider";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { UserGoal } from "@/src/app/(tabs)/home";
+import { addDays, getRelativeDateInfo } from "@/src/utils/dateUtils";
+import { getGoalUser, updateGoalInUser } from "@/src/services/userServices";
+import { auth } from "@/src/firebase/config";
+import { LinearGradient } from "expo-linear-gradient";
 
-type CreateGoalProps = {
-    visible: boolean;
-    onConfirm: (
-        name: string,
-        description?: string,
-        timeRemaining?: Date,
-        status?: string,
-        selectedDays?: object,
-    ) => void;
-    onCancel: () => void;
-};
-
-export default function CreateGoal({
+export default function GoalEditModal({
     visible,
-    onConfirm,
-    onCancel,
-}: CreateGoalProps) {
-    const [name, setName] = useState("");
+    onClose,
+    goal,
+    onReload,
+    onSave,
+}: {
+    visible: boolean;
+    goal: UserGoal | null;
+    onClose: () => void;
+    onReload: () => void;
+    onSave?: (updateGoal: UserGoal) => void;
+}) {
+    const { theme } = useTheme();
+
+    const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const status = "Pendente";
 
     const [time, setTime] = useState(1);
+    const [loading, setLoading] = useState(false);
 
-    const { theme } = useTheme();
-
-    const [daily, setDaily] = useState(true);
-    const [challenge, setChallenge] = useState(false);
+    const [isRecurringGoal, setIsRecurringGoal] = useState(false);
+    const [isTimedGoal, setIsTimedGoal] = useState(false);
+    const [isFreeFormGoal, setIsFreeFormGoal] = useState(false);
 
     const [seg, setSeg] = useState(false);
     const [ter, setTer] = useState(false);
@@ -52,34 +54,77 @@ export default function CreateGoal({
     const [sab, setSab] = useState(false);
     const [dom, setDom] = useState(false);
 
-    const toggleDaily = () => {
-        if (daily) return;
-        setDaily(true);
-        setChallenge(false);
+    const scrollRef = useRef<ScrollView>(null);
+
+    useEffect(() => {
+        if (!goal) return;
+
+        setTitle(goal.title || "");
+        setDescription(goal.description || "");
+        if (goal.selectedDays) {
+            setIsRecurringGoal(true);
+            const days = goal.selectedDays;
+            setDom(days.dom);
+            setSeg(days.seg);
+            setTer(days.ter);
+            setQua(days.qua);
+            setQui(days.qui);
+            setSex(days.sex);
+            setSab(days.sab);
+        } else if (goal.timeRemaining) {
+            setIsTimedGoal(true);
+            const diasRestantes = getRelativeDateInfo(
+                goal.timeRemaining as Date,
+            );
+            if (diasRestantes) {
+                setTime(diasRestantes.Value);
+            }
+        } else if (!goal.selectedDays && !goal.timeRemaining) {
+            setIsFreeFormGoal(true);
+        }
+    }, [goal]);
+
+    useEffect(() => {
+        let index = 0;
+
+        if (isFreeFormGoal) index = 0;
+        else if (isRecurringGoal) index = 1;
+        else if (isTimedGoal) index = 2;
+
+        const x = 20 + index * 120;
+
+        scrollRef.current?.scrollTo({ x, animated: true });
+    }, [isFreeFormGoal, isRecurringGoal, isTimedGoal]);
+
+    const activateFreeFormMode = () => {
+        if (isFreeFormGoal) return;
+        setIsFreeFormGoal(true);
+        setIsRecurringGoal(false);
+        setIsTimedGoal(false);
     };
 
-    const toggleChallenge = () => {
-        if (challenge) return;
-        setChallenge(true);
-        setDaily(false);
+    const activateRecurringMode = () => {
+        if (isRecurringGoal) return;
+        setIsFreeFormGoal(false);
+        setIsRecurringGoal(true);
+        setIsTimedGoal(false);
     };
 
-    const getMessage = (days: number) => {
-        if (days <= 3)
-            return { text: "Missão relâmpago !", icon: "lightning-bolt" };
-        if (days <= 7)
-            return { text: "Objetivo da semana !", icon: "calendar-week" };
-        if (days <= 14) return { text: "Plano esperto !", icon: "lightbulb" };
-        return { text: "Meta épica !", icon: "trophy" };
+    const activateTimedMode = () => {
+        if (isTimedGoal) return;
+        setIsFreeFormGoal(false);
+        setIsRecurringGoal(false);
+        setIsTimedGoal(true);
     };
-    const selectAllDays = () => {
-        setDom(!dom);
-        setSeg(!seg);
-        setTer(!ter);
-        setQua(!qua);
-        setQui(!qui);
-        setSex(!sex);
-        setSab(!sab);
+
+    const deselectAllDays = () => {
+        setDom(true);
+        setSeg(true);
+        setTer(true);
+        setQua(true);
+        setQui(true);
+        setSex(true);
+        setSab(true);
     };
 
     const resetDays = () => {
@@ -93,18 +138,26 @@ export default function CreateGoal({
     };
 
     const resetForm = () => {
-        setName("");
+        setTitle("");
         setDescription("");
         setTime(1);
-        setChallenge(false);
-        setDaily(true);
+        setIsTimedGoal(false);
+        setIsRecurringGoal(false);
         resetDays();
     };
 
-    //cria uma meta, e caso tenha um desafio, add os dias na data atual
-    const handleCreate = () => {
-        if (!name.trim()) return;
-        let timeRemaining = challenge ? addDays(new Date(), time) : undefined;
+    const getGoalDifficultyMessage = (days: number) => {
+        if (days <= 3)
+            return { text: "Missão relâmpago !", icon: "lightning-bolt" };
+        if (days <= 7)
+            return { text: "Objetivo da semana !", icon: "calendar-week" };
+        if (days <= 14) return { text: "Plano esperto !", icon: "lightbulb" };
+        return { text: "Meta épica !", icon: "trophy" };
+    };
+
+    const handleSave = async () => {
+        if (!title.trim()) return;
+        let timeRemaining = isTimedGoal ? addDays(new Date(), time) : undefined;
 
         const days = {
             dom,
@@ -116,23 +169,67 @@ export default function CreateGoal({
             sab,
         };
 
-        if (daily) {
-            onConfirm(
-                name,
+        if (isRecurringGoal) {
+            await updateGoal(
+                title,
                 description || undefined,
-                timeRemaining,
                 status,
+                timeRemaining,
                 days,
             );
-        } else if (challenge) {
-            onConfirm(name, description || undefined, timeRemaining, status);
+        } else if (isTimedGoal) {
+            await updateGoal(
+                title,
+                description || undefined,
+                status,
+                timeRemaining,
+            );
+        } else if (isFreeFormGoal) {
+            await updateGoal(title, description || undefined, status);
         }
-        resetForm();
+
+        onReload();
+    };
+
+    const updateGoal = async (
+        title: string,
+        description?: string,
+        status?: string,
+        timeRemaining?: Date,
+        selectedDays?: Object,
+    ) => {
+        setLoading(true);
+        try {
+            const newGoal = {
+                id: goal?.id,
+                title,
+                description,
+                timeRemaining,
+                status,
+                selectedDays: selectedDays || null,
+                color: goal?.color,
+                lastUpdated: selectedDays ? new Date() : null,
+            };
+
+            await updateGoalInUser(auth.currentUser?.uid, newGoal);
+            if (onSave) {
+                const goalUpdated = await getGoalUser(
+                    auth.currentUser?.uid,
+                    newGoal.id,
+                );
+                onSave(goalUpdated);
+            }
+        } catch (error) {
+            console.log("Erro ao adicionar a meta", error);
+        } finally {
+            setLoading(false);
+            handleCancel();
+        }
     };
 
     const handleCancel = () => {
         resetForm();
-        onCancel();
+        onClose();
     };
 
     return (
@@ -145,41 +242,87 @@ export default function CreateGoal({
             <View style={styles(theme).overlay}>
                 <StatusBar backgroundColor="rgba(0, 0, 0, 0.7)" />
                 <View style={styles(theme).container}>
-                    <Text style={styles(theme).title}>Criar Nova Meta</Text>
+                    <Text style={styles(theme).title}>Editar Meta</Text>
                     <AppInput
                         icon="flag"
-                        value={name}
-                        onChangeText={setName}
+                        value={title}
+                        onChangeText={setTitle}
                         placeholder="Nome da meta"
                         autoCapitalize="sentences"
                     />
-                    <View style={styles(theme).selectionView}>
-                        <AppSelectionButton
-                            onPress={toggleDaily}
-                            icon="calendar-outline"
-                            title="Meta Diaria"
-                            selected={daily}
-                            boldText={false}
+                    <View
+                        style={[
+                            styles(theme).selectionView,
+                            {
+                                gap: 20,
+                            },
+                        ]}
+                    >
+                        <ScrollView
+                            ref={scrollRef}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                        >
+                            <View style={{ width: 100 }} />
+                            <AppSelectionButton
+                                onPress={activateFreeFormMode}
+                                icon="bulb-outline"
+                                title="Meta Livre"
+                                selected={isFreeFormGoal}
+                                boldText={false}
+                                widthButton={120}
+                            />
+                            <AppSelectionButton
+                                onPress={activateRecurringMode}
+                                icon="calendar-outline"
+                                title="Meta Diaria"
+                                selected={isRecurringGoal}
+                                boldText={false}
+                                widthButton={120}
+                            />
+                            <AppSelectionButton
+                                onPress={activateTimedMode}
+                                icon="trophy-outline"
+                                title="Desafio"
+                                selected={isTimedGoal}
+                                boldText={false}
+                                widthButton={120}
+                            />
+                            <View style={{ width: 100 }} />
+                        </ScrollView>
+
+                        <LinearGradient
+                            colors={["transparent", theme.modalBackground]}
+                            pointerEvents="none"
+                            style={styles(theme).fadeRight}
+                            start={{ y: 1, x: 0 }}
                         />
-                        <AppSelectionButton
-                            onPress={toggleChallenge}
-                            icon="trophy-outline"
-                            title="Desafio"
-                            selected={challenge}
-                            boldText={false}
+                        <LinearGradient
+                            colors={["transparent", theme.modalBackground]}
+                            pointerEvents="none"
+                            style={styles(theme).fadeLeft}
+                            start={{ y: 1, x: 1 }}
                         />
                     </View>
-                    {challenge && (
+                    {isTimedGoal && (
                         <View style={{ width: "100%" }}>
-                            <View style={styles(theme).challengeContainer}>
+                            <View
+                                style={[
+                                    styles(theme).challengeContainer,
+                                    { opacity: 0.4 },
+                                ]}
+                            >
                                 <View style={styles(theme).message}>
                                     <MaterialCommunityIcons
-                                        name={getMessage(time).icon as any}
+                                        name={
+                                            getGoalDifficultyMessage(time)
+                                                .icon as any
+                                        }
                                         size={22}
                                         color={theme.primary}
                                     />
                                     <Text style={styles(theme).subtitle}>
-                                        {getMessage(time).text}
+                                        {getGoalDifficultyMessage(time).text}
                                     </Text>
                                 </View>
 
@@ -191,7 +334,9 @@ export default function CreateGoal({
                                     style={styles(theme).slider}
                                     minimumValue={1}
                                     maximumValue={30}
+                                    value={time}
                                     step={1}
+                                    disabled
                                     onValueChange={(val: number) => {
                                         setTime(val);
                                     }}
@@ -204,7 +349,7 @@ export default function CreateGoal({
                             </View>
                             <AppInput
                                 icon="document-text"
-                                value={description}
+                                value={description as any}
                                 onChangeText={setDescription}
                                 placeholder="Descreva sua meta"
                                 multiline={true}
@@ -212,7 +357,7 @@ export default function CreateGoal({
                             />
                         </View>
                     )}
-                    {daily && (
+                    {isRecurringGoal && (
                         <View style={{ width: "100%" }}>
                             <Text style={styles(theme).subtitle}>
                                 Repita Diariamente em
@@ -306,12 +451,12 @@ export default function CreateGoal({
                             <AppSelectionButton
                                 icon="checkbox"
                                 title="Todos os Dias"
-                                onPress={selectAllDays}
+                                onPress={deselectAllDays}
                                 selected={true}
                             />
                             <AppInput
                                 icon="document-text"
-                                value={description}
+                                value={description as any}
                                 onChangeText={setDescription}
                                 placeholder="Descreva sua meta"
                                 multiline={true}
@@ -319,21 +464,34 @@ export default function CreateGoal({
                             />
                         </View>
                     )}
+                    {isFreeFormGoal && (
+                        <AppInput
+                            icon="document-text"
+                            value={description}
+                            onChangeText={setDescription}
+                            placeholder="Descreva sua meta"
+                            multiline={true}
+                            autoCapitalize="sentences"
+                        />
+                    )}
 
                     <View style={styles(theme).buttonContainer}>
                         <AppButton
+                            icon="close"
                             onPress={handleCancel}
                             title="Cancelar"
                             backgroundColor={theme.incorrect}
                             boldText={true}
                             widthButton={"48%"}
                         />
-                        <AppButton
-                            onPress={handleCreate}
-                            title="Criar"
-                            backgroundColor={theme.correct}
-                            boldText={true}
+
+                        <AppLoadingButton
+                            isLoading={loading}
+                            icon="checkmark-sharp"
+                            onPress={handleSave}
+                            title="Salvar"
                             widthButton={"48%"}
+                            propStyle={{ backgroundColor: theme.correct }}
                         />
                     </View>
                 </View>
@@ -342,7 +500,6 @@ export default function CreateGoal({
     );
 }
 
-// 🔹 Estilos do Modal
 const styles = (theme: any) =>
     StyleSheet.create({
         overlay: {
@@ -363,8 +520,8 @@ const styles = (theme: any) =>
         title: {
             fontSize: 22,
             fontWeight: "bold",
-            color: theme.textPrimary,
-            marginBottom: "6%",
+            color: theme.textSecondary,
+            marginBottom: 8,
         },
         subtitle: {
             color: theme.textPrimary,
@@ -412,5 +569,21 @@ const styles = (theme: any) =>
             flexDirection: "row",
             justifyContent: "center",
             alignItems: "center",
+        },
+        fadeLeft: {
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 30,
+            zIndex: 10,
+        },
+        fadeRight: {
+            position: "absolute",
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 30,
+            zIndex: 10,
         },
     });

@@ -1,5 +1,4 @@
 const colors = {
-    //recomendo a exten Color Highlight
     black: "#121212",
     white: "#FFFFFF",
     grey1: "#1E1E1E",
@@ -16,8 +15,8 @@ const colors = {
         orange2: "#FF8C00",
         blue: "#1E90FF",
         green3: "#ADFF2F",
-    }
-}
+    },
+};
 
-export default colors
+export default colors;
 //https://icons.expo.fyi/Index todos os simbolos da biblioteca com os respectivos nomes e bibliotecas pra importar

@@ -2,13 +2,7 @@ import { auth } from "@/src/firebase/config";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import AppButton from "@/src/components/Buttons/Buttons";
 import { useTheme } from "@/src/context/contextTheme";
 

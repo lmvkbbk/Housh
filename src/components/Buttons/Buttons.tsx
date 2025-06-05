@@ -13,6 +13,7 @@ type ButtonProps = {
     title?: any;
     backgroundColor?: string;
     textColor?: string;
+    sizeText?: number;
     boldText?: boolean;
     propStyle?: ViewStyle;
 };
@@ -24,6 +25,7 @@ export default function AppButton({
     onPress,
     backgroundColor,
     textColor,
+    sizeText,
     boldText,
     propStyle,
 }: ButtonProps) {
@@ -42,8 +44,8 @@ export default function AppButton({
                     backgroundColor: resolvedBackgroundColor,
                     width: widthButton,
                     minHeight: 25,
-                    paddingVertical: backgroundColor ? 16 : 0,
-                    paddingHorizontal: backgroundColor ? 20 : 0,
+                    paddingVertical: backgroundColor ? 12 : 0,
+                    paddingHorizontal: backgroundColor ? 16 : 0,
                     borderRadius: 12,
                 },
                 propStyle,
@@ -56,7 +58,10 @@ export default function AppButton({
                     name={icon}
                     size={24}
                     color={resolvedTextColor}
-                    style={styles.icon}
+                    style={[
+                        styles.icon,
+                        !title && backgroundColor && { marginRight: 0 },
+                    ]}
                 />
             )}
             {title && (
@@ -67,6 +72,12 @@ export default function AppButton({
                             color: resolvedTextColor,
                             fontWeight: boldText ? "bold" : "normal",
                         },
+                        sizeText
+                            ? {
+                                  fontSize: sizeText,
+                                  textDecorationLine: "underline",
+                              }
+                            : {},
                     ]}
                 >
                     {title}

@@ -8,12 +8,12 @@ import {
     Modal,
     TouchableOpacity,
 } from "react-native";
-import { Header } from "@/src/components/header";
 import { delUser, logOut } from "@/src/firebase/auth";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { auth } from "@/src/firebase/config";
 import { useState } from "react";
 import { useTheme } from "@/src/context/contextTheme";
+import { Header } from "@/src/components/Headers/header";
 
 export default function Settings() {
     const [isModalVisible, setIsModalVisible] = useState(false);

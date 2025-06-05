@@ -3,16 +3,7 @@ import { reauthenticate } from "@/src/firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-    ActivityIndicator,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { SafeAreaView, StatusBar, StyleSheet, Text } from "react-native";
 import AppInput from "@/src/components/Inputs/Input";
 import { useTheme } from "@/src/context/contextTheme";
 import AppInputPassword from "@/src/components/Inputs/InputPassword";

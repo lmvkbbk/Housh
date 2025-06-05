@@ -1,5 +1,5 @@
+import { useTheme } from "@/src/context/contextTheme";
 import { View, Text, StyleSheet, SafeAreaView, StatusBar } from "react-native";
-import { useTheme } from "../context/contextTheme";
 
 export function Header({ title }: { title: string }) {
     const { theme } = useTheme();
@@ -12,7 +12,7 @@ export function Header({ title }: { title: string }) {
                 }
                 backgroundColor={theme.modalBackground}
             />
-            <View style={styles(theme).headerContainer}>
+            <View style={[styles(theme).headerContainer]}>
                 <Text style={styles(theme).headerText}>{title}</Text>
                 <View style={styles(theme).underline} />
             </View>
@@ -29,7 +29,8 @@ const styles = (theme: any) =>
         },
         headerContainer: {
             backgroundColor: theme.modalBackground,
-            paddingBottom: 16,
+            paddingTop: 10,
+            paddingBottom: 20,
             paddingHorizontal: 24,
             borderBottomLeftRadius: 20,
             borderBottomRightRadius: 20,

@@ -3,15 +3,7 @@ import { emailUpdate, emailVerification } from "@/src/firebase/auth";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    SafeAreaView,
-    StatusBar,
-    ActivityIndicator,
-} from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, StatusBar } from "react-native";
 import AppLoadingButton from "@/src/components/Buttons/LoadingButton";
 import AppInput from "@/src/components/Inputs/Input";
 import { useTheme } from "@/src/context/contextTheme";

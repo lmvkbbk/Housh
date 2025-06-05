@@ -1,4 +1,3 @@
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
 import { useRef, useState } from "react";
 import {
     Dimensions,
@@ -14,7 +13,6 @@ import {
     OnboardingPage,
     pages,
 } from "../components/OnboardingPresentation/OnboardingData";
-import AppButton from "../components/Buttons/Buttons";
 import { useTheme } from "../context/contextTheme";
 import OnboardingSlide from "../components/OnboardingPresentation/OnboardingSlide";
 import OnboardingNavigation from "../components/OnboardingPresentation/OnboardingNavigation";
@@ -23,7 +21,7 @@ const { width, height } = Dimensions.get("window");
 
 const PresentantionApp = () => {
     const router = useRouter();
-    const { theme, toggleTheme } = useTheme();
+    const { theme } = useTheme();
 
     const [currentPage, setCurrentPage] = useState(0);
     const FlatListRef = useRef<FlatList<OnboardingPage>>(null);

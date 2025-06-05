@@ -9,18 +9,21 @@ import {
     Text,
     View,
 } from "react-native";
-import { Header } from "@/src/components/header";
 import AppLoadingButton from "@/src/components/Buttons/LoadingButton";
 import AppInput from "@/src/components/Inputs/Input";
 import PickImageProfile from "@/src/components/ImageProfile/PickImageProfile";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/src/context/contextTheme";
+import { setNameUser } from "@/src/services/userServices";
+import { Header } from "@/src/components/Headers/header";
 
 export default function EditProfile() {
     const [name, setName] = useState(auth.currentUser?.displayName);
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
-    const [localImagePath, setLocalImagePath] = useState("");
+    const [localImagePath, setLocalImagePath] = useState(
+        auth.currentUser?.photoURL,
+    );
 
     const router = useRouter();
     const { theme } = useTheme();
@@ -49,6 +52,7 @@ export default function EditProfile() {
                 return;
             } else {
                 try {
+                    await setNameUser(auth.currentUser?.uid, name);
                     await updateProfile(auth.currentUser, {
                         displayName: name,
                         photoURL: localImagePath,

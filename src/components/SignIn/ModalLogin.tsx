@@ -4,12 +4,12 @@ import {
     View,
     Text,
     TouchableOpacity,
+    StatusBar,
     StyleSheet,
     SafeAreaView,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useTheme } from "@/src/context/contextTheme";
-import { StatusBar } from "expo-status-bar";
 import AppInput from "../Inputs/Input";
 import AppInputPassword from "../Inputs/InputPassword";
 import AppLoadingButton from "../Buttons/LoadingButton";
@@ -54,9 +54,10 @@ export default function ModalLogin({
         >
             <SafeAreaView style={modalStyles.modalOverlay}>
                 <StatusBar
-                    style="light"
-                    backgroundColor="rgba(0,0,0,0.5)"
-                    translucent
+                    barStyle={
+                        theme.mode === "dark" ? "light-content" : "dark-content"
+                    }
+                    backgroundColor="rgba(0, 0, 0, 0.5)"
                 />
                 <View style={modalStyles.modalContainer}>
                     <Text style={modalStyles.title}>Login</Text>

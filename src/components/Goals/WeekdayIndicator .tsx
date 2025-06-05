@@ -8,7 +8,12 @@ interface DayProp {
     title: string;
 }
 
-export default function AppDaysGoal({ today, day, active, title }: DayProp) {
+export default function WeekdayIndicator({
+    today,
+    day,
+    active,
+    title,
+}: DayProp) {
     const { theme } = useTheme();
 
     const activeToday = today === day;

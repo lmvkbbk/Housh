@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import AppButton from "@/src/components/Buttons/Buttons";
 import { useTheme } from "@/src/context/contextTheme";
 

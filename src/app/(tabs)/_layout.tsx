@@ -1,7 +1,6 @@
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { useTheme } from "@/src/context/contextTheme";
-import { TouchableWithoutFeedback } from "react-native";
 
 export default function Layout() {
     const { theme } = useTheme();
@@ -19,6 +18,7 @@ export default function Layout() {
                 tabBarStyle: {
                     height: 55,
                     backgroundColor: theme.modalBackground,
+                    borderTopWidth: 0,
                 },
                 tabBarItemStyle: {
                     borderRadius: 15,

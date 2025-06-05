@@ -1,18 +1,16 @@
 import {
     View,
-    Text,
-    TouchableOpacity,
     StyleSheet,
     ScrollView,
+    SafeAreaView,
     RefreshControl,
     ToastAndroid,
+    ActivityIndicator,
+    Text,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-
-import colors from "@/src/styles/colors";
 import {
-    addGoalInUser,
+    getGoalUser,
     getUserGoals,
     removeGoalInUser,
     updateLastDateGoalInUser,
@@ -20,18 +18,25 @@ import {
     updateUserGoalPoints,
     updateUserPoints,
 } from "@/src/services/userServices";
-import { Header } from "@/src/components/header";
-import Goal from "@/src/components/Goals/goal";
-import CreateGoal from "@/src/components/Goals/createGoal";
-import { auth } from "@/src/firebase/config";
+import GoalCreationModal from "@/src/components/Goals/GoalCreationModal";
+import { auth, db } from "@/src/firebase/config";
 import { useTheme } from "@/src/context/contextTheme";
 import AppButton from "@/src/components/Buttons/Buttons";
 import { getRelativeDateInfo } from "@/src/utils/dateUtils";
-import EmptyGoals from "@/src/components/EmptyGoals";
+import { Header } from "@/src/components/Headers/header";
+import EmptyGoalsScreen from "@/src/components/EmptyScreens/EmptyGoalsScreen";
+import GoalEditModal from "@/src/components/Goals/GoalEditModal";
+import GroupedGoalsList from "@/src/components/Goals/GroupedGoalsList";
+import GoalsSeeMoreModal from "@/src/components/Goals/GoalsSeeMoreModal";
+import { unlockAchievement } from "@/src/services/unlockAchievement";
+import { useAchievement } from "@/src/context/contextAchievement";
+import { onValue, ref } from "firebase/database";
+import SequenceCard from "@/src/components/SequenceCard";
+import { LinearGradient } from "expo-linear-gradient";
 
-interface GoalType {
+export interface UserGoal {
     id: string;
-    name: string;
+    title: string;
     description?: string;
     timeRemaining?: Date;
     status?: string;
@@ -45,52 +50,131 @@ interface GoalType {
         sab: boolean;
     };
     color: string;
-    lastDate: Date;
+    lastUpdated: Date;
 }
 
 export default function Home() {
     const [modalVisible, setModalVisible] = useState(false);
-    const noteColors = Object.values(colors.notes);
-    const [goals, setGoals] = useState<GoalType[]>([]);
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [showSeeMoreModal, setShowSeeMoreModal] = useState(false);
 
-    const goalsWithDeadline = goals.filter(
+    const [lastSequence, setLastSequence] = useState<Date | null>(null);
+    const [sequenceDays, setSequenceDays] = useState<number>(0);
+
+    const [userGoalsList, setUserGoalsList] = useState<UserGoal[]>([]);
+    const [selectedGoalForEdit, setSelectedGoalForEdit] = useState<UserGoal>();
+
+    // Seleciona as metas abertas ( sem limite de tempo e nem repeticao diaria)
+    const freeFormGoals = userGoalsList.filter(
+        (goal) => !goal.timeRemaining && !goal.selectedDays,
+    );
+
+    // Seleciona as metas Diarias ( se repetem de acordo com os dias escolhidos na semana)
+    const deadlineBasedGoals = userGoalsList.filter(
         (goal) => goal.timeRemaining && !goal.selectedDays,
     );
-    const recurringGoals = goals.filter(
+
+    const urgentDeadlineGoals = userGoalsList.filter((goal) => {
+        const remainingDays = goal.timeRemaining
+            ? getRelativeDateInfo(goal.timeRemaining)?.Value
+            : null;
+        return remainingDays && remainingDays <= 5 && !goal.selectedDays;
+    });
+
+    // Seleciona as metas desafio ( possuem um tempo maximo para conclusao, de ate 30 dias)
+    const dailyRecurringGoals = userGoalsList.filter(
         (goal) => goal.selectedDays && !goal.timeRemaining,
     );
 
+    const diasChave = [
+        "dom",
+        "seg",
+        "ter",
+        "qua",
+        "qui",
+        "sex",
+        "sab",
+    ] as const;
+    const hojeIndex = new Date().getDay();
+    const hojeChave = diasChave[hojeIndex];
+
+    const dailyRecurringGoalsToday = userGoalsList.filter(
+        (goal) => goal.selectedDays?.[hojeChave] && !goal.timeRemaining,
+    );
+
+    const [selectedGoals, setSeletedGoals] = useState<UserGoal[]>([]);
+    const [titleModal, setTitleModal] = useState("");
+
+    const seeMoreModal = (goals: UserGoal[], title: string) => {
+        setTitleModal(title);
+        setSeletedGoals(goals);
+        setShowSeeMoreModal(true);
+    };
+
     const { theme } = useTheme();
+    const { showAchievement } = useAchievement();
     const [refreshing, setRefreshing] = useState(false);
 
-    const removeGoal = async (goalId: string) => {
-        setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
+    const fetchUserGoals = async () => {
+        const uid = auth.currentUser?.uid;
+        if (!uid) {
+            console.log("Usuário não autenticado");
+            return;
+        }
+
+        const userGoals = await getUserGoals(uid);
+
+        if (userGoals) {
+            const goalsArray = Object.keys(userGoals).map((key) => ({
+                ...userGoals[key],
+                id: key,
+            }));
+            await updateGoalsStatusBasedOnDate(goalsArray);
+        } else {
+            setUserGoalsList([]);
+            console.log("Nenhuma meta encontrada");
+        }
+    };
+
+    const loadGoalForEdit = async (goalId: string) => {
+        const goal = await getGoalUser(auth.currentUser?.uid, goalId);
+        if (goal) {
+            setSelectedGoalForEdit(goal);
+            setEditModalVisible(true);
+        } else {
+            ToastAndroid.show("Erro ao carregar a meta.", ToastAndroid.SHORT);
+        }
+    };
+
+    const deleteUserGoal = async (goalId: string) => {
+        setUserGoalsList((prev) => prev.filter((goal) => goal.id !== goalId));
+
         await removeGoalInUser(auth.currentUser?.uid, goalId);
-        //notificacao pra confirmar que a meta foi removida
         ToastAndroid.show("Meta removida!", ToastAndroid.SHORT);
     };
-    const completeGoal = async (goal: GoalType) => {
-        await updateStatusGoalInUser(
-            auth.currentUser?.uid,
-            goal.id,
-            "Concluida",
-        );
-        console.log(goal.id);
+
+    const markGoalAsCompleted = async (goal: UserGoal) => {
+        const uid = auth.currentUser?.uid;
+        await updateStatusGoalInUser(uid, goal.id, "Concluida");
+
+        // Atribui Pontuacao ao usuario de acordo com tipo de meta
         let points = 0;
         if (goal.timeRemaining) {
             const deadline: any = getRelativeDateInfo(
                 goal.timeRemaining,
             )?.Value;
             if (deadline < 3) {
-                points = 1;
-            } else if (deadline > 3 && deadline < 7) {
                 points = 2;
+            } else if (deadline > 3 && deadline < 7) {
+                points = 6;
             } else if (deadline > 7 && deadline < 14) {
-                points = 3;
+                points = 8;
             } else {
-                points = 5;
+                points = 10;
             }
         } else if (goal.selectedDays) {
+            points = 2;
+        } else {
             points = 1;
         }
 
@@ -98,17 +182,33 @@ export default function Home() {
         await updateUserGoalPoints(auth.currentUser?.uid);
 
         ToastAndroid.show("Meta concluída!", ToastAndroid.SHORT);
-        await loadGoals();
+
+        fetchUserGoals();
+        if (uid) {
+            if (goal.timeRemaining) {
+                await unlockAchievement(
+                    uid,
+                    "challengeCompleted",
+                    showAchievement,
+                );
+            } else {
+                await unlockAchievement(
+                    uid,
+                    "firstGoalCompleted",
+                    showAchievement,
+                );
+            }
+        }
     };
 
-    const handleReload = async () => {
+    const refreshUserGoals = async () => {
         setRefreshing(true);
-        await loadGoals();
+        await fetchUserGoals();
         setRefreshing(false);
     };
 
     //reinicia ou atualiza o status das metas
-    const verifyGoals = async (loadedGoals: GoalType[]) => {
+    const updateGoalsStatusBasedOnDate = async (loadedGoals: UserGoal[]) => {
         //timestamp pra remover o fuso
         const today = new Date();
         const timezoneOffset = today.getTimezoneOffset() * 60000;
@@ -121,7 +221,12 @@ export default function Home() {
             o celular a meta e atualizada para atrasada*/
             if (goal.timeRemaining) {
                 const deadline = getRelativeDateInfo(goal.timeRemaining)?.Value;
-                if (deadline && deadline < 0 && goal.status !== "Atrasada") {
+                if (
+                    deadline &&
+                    deadline < 0 &&
+                    goal.status !== "Atrasada" &&
+                    goal.status !== "Concluida"
+                ) {
                     updateStatusGoalInUser(
                         auth.currentUser?.uid,
                         goal.id,
@@ -133,7 +238,7 @@ export default function Home() {
             /*se a meta for diaria ela repete a meta, atualizando o status
             pra pendente caso tenha completa no dia anterior*/
             if (goal.selectedDays) {
-                const goalDateOnly = new Date(goal.lastDate).setHours(
+                const goalDateOnly = new Date(goal.lastUpdated).setHours(
                     0,
                     0,
                     0,
@@ -153,135 +258,188 @@ export default function Home() {
 
             return goal;
         });
-        setGoals(updatedGoals);
+        setUserGoalsList(updatedGoals);
     };
 
-    const loadGoals = async () => {
-        const userGoals = await getUserGoals(auth.currentUser?.uid);
-        //goalsArray recebe os dados do usuario em obj e transformado em array
-        if (userGoals) {
-            const goalsArray = Object.keys(userGoals).map((key) => ({
-                ...userGoals[key],
-                id: key,
-            }));
-            verifyGoals(goalsArray);
-        } else {
-            return;
-        }
-    };
+    const [loading, setLoading] = useState(false);
 
-    //useEffect pra carregar as metas do usuario, quando carregar tela home
     useEffect(() => {
-        loadGoals();
-    }, []);
+        const uid = auth.currentUser?.uid;
 
-    //Funcao q eh chamada quando o usuario cria uma meta nova
-    const addGoal = async (
-        name: string,
-        description?: string,
-        timeRemaining?: Date,
-        status?: string,
-        selectedDays?: Object,
-    ) => {
-        const randomColor =
-            noteColors[Math.floor(Math.random() * noteColors.length)];
-
-        const newGoal = {
-            id: Date.now().toString(),
-            name,
-            description,
-            timeRemaining,
-            status,
-            selectedDays: selectedDays || null,
-            color: randomColor,
-            lastDate: selectedDays ? new Date() : null,
+        const loadGoals = async () => {
+            setLoading(true);
+            await fetchUserGoals();
+            setLoading(false);
         };
 
-        //atualiza o usuario com a nova meta
-        await addGoalInUser(auth.currentUser?.uid, newGoal);
-        await loadGoals();
-        setModalVisible(false);
-    };
+        const daysRef = ref(db, `Users/${uid}`);
+        const unsubscribe = onValue(daysRef, async (snapshot) => {
+            const userData = snapshot.val();
+
+            if (!uid) return;
+
+            if (userData.DaysInSequence >= 30) {
+                await unlockAchievement(
+                    uid,
+                    "thirtyDaysUsage",
+                    showAchievement,
+                );
+            }
+
+            if (userData.DaysInSequence >= 182) {
+                await unlockAchievement(uid, "veteranUser", showAchievement);
+            }
+
+            if (userData.GoalsCompleted >= 5) {
+                await unlockAchievement(
+                    uid,
+                    "fiveGoalsCompleted",
+                    showAchievement,
+                );
+            }
+
+            if (userData.lastCompletedDate) {
+                setLastSequence(userData.lastCompletedDate);
+            }
+            if (userData.DaysInSequence) {
+                setSequenceDays(userData.DaysInSequence);
+            }
+        });
+
+        loadGoals();
+        return () => unsubscribe();
+    }, []);
 
     const handleCancel = () => {
         setModalVisible(false);
     };
 
+    const handleCloseModalSeeMore = async () => {
+        setShowSeeMoreModal(false);
+    };
+
+    const handleReloadModalSeeMore = async () => {
+        fetchUserGoals();
+    };
+
     return (
-        <View style={styles(theme).container}>
+        <SafeAreaView style={styles(theme).container}>
             <Header title="Suas Metas" />
-            {goals.length > 0 ? (
+
+            <GoalsSeeMoreModal
+                title={titleModal}
+                visible={showSeeMoreModal}
+                goals={selectedGoals}
+                onClose={handleCloseModalSeeMore}
+                onReload={handleReloadModalSeeMore}
+            />
+            {loading ? (
+                <View
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <ActivityIndicator size={50} color={theme.primary} />
+                    <Text
+                        style={{
+                            marginTop: 12,
+                            color: theme.textSecondary,
+                            fontSize: 16,
+                        }}
+                    >
+                        Só um instante... preparando suas metas!
+                    </Text>
+                </View>
+            ) : userGoalsList.length > 0 ? (
                 <ScrollView
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
-                            onRefresh={handleReload}
+                            onRefresh={refreshUserGoals}
                         />
                     }
-                    contentContainerStyle={styles(theme).goalContainer}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles(theme).scrollContent}
                 >
-                    {goalsWithDeadline.length > 0 && (
-                        <>
-                            <View style={styles(theme).sectionHeader}>
-                                <Ionicons
-                                    name="calendar-outline"
-                                    size={20}
-                                    color={theme.textPrimary}
-                                />
-                                <Text style={styles(theme).sectionTitleText}>
-                                    Desafios
-                                </Text>
-                            </View>
-                            {goalsWithDeadline.map((goal) => (
-                                <TouchableOpacity key={goal.id}>
-                                    <Goal
-                                        id={goal.id}
-                                        name={goal.name}
-                                        description={goal.description}
-                                        timeRemaining={goal.timeRemaining}
-                                        status={goal.status}
-                                        selectedDays={goal.selectedDays}
-                                        color={goal.color}
-                                        onRemove={() => removeGoal(goal.id)}
-                                        onComplete={() => completeGoal(goal)}
-                                    />
-                                </TouchableOpacity>
-                            ))}
-                        </>
-                    )}
+                    <SequenceCard
+                        lastDate={lastSequence}
+                        currentStreak={sequenceDays}
+                    />
+                    <GroupedGoalsList
+                        title="Metas do Dia"
+                        icon="sunny-outline"
+                        miniCard
+                        goals={dailyRecurringGoalsToday}
+                        onEditGoal={(goalId) => loadGoalForEdit(goalId)}
+                        onRemoveGoal={(goalId) => deleteUserGoal(goalId)}
+                        onCompleteGoal={(goalId) => markGoalAsCompleted(goalId)}
+                        onSeeMore={(titleModal) =>
+                            seeMoreModal(dailyRecurringGoalsToday, titleModal)
+                        }
+                    />
 
-                    {recurringGoals.length > 0 && (
-                        <>
-                            <View style={styles(theme).sectionHeader}>
-                                <Ionicons
-                                    name="repeat-outline"
-                                    size={20}
-                                    color={theme.textPrimary}
-                                />
-                                <Text style={styles(theme).sectionTitleText}>
-                                    Meta Diaria
-                                </Text>
-                            </View>
-                            {recurringGoals.map((goal) => (
-                                <TouchableOpacity key={goal.id}>
-                                    <Goal
-                                        id={goal.id}
-                                        name={goal.name}
-                                        description={goal.description}
-                                        timeRemaining={goal.timeRemaining}
-                                        status={goal.status}
-                                        selectedDays={goal.selectedDays}
-                                        color={goal.color}
-                                        onRemove={() => removeGoal(goal.id)}
-                                        onComplete={() => completeGoal(goal)}
-                                    />
-                                </TouchableOpacity>
-                            ))}
-                        </>
-                    )}
+                    <GroupedGoalsList
+                        title="Prazos Urgentes"
+                        icon="alert-circle-outline"
+                        goals={urgentDeadlineGoals}
+                        collapsedButton
+                        onEditGoal={(goalId) => loadGoalForEdit(goalId)}
+                        onRemoveGoal={(goalId) => deleteUserGoal(goalId)}
+                        onCompleteGoal={(goalId) => markGoalAsCompleted(goalId)}
+                        onSeeMore={(titleModal) => {
+                            seeMoreModal(urgentDeadlineGoals, titleModal);
+                        }}
+                    />
+
+                    <GroupedGoalsList
+                        title="Metas Livres"
+                        icon="bulb-outline"
+                        goals={freeFormGoals}
+                        miniCard
+                        onEditGoal={(goalId) => loadGoalForEdit(goalId)}
+                        onRemoveGoal={(goalId) => deleteUserGoal(goalId)}
+                        onCompleteGoal={(goalId) => markGoalAsCompleted(goalId)}
+                        onSeeMore={(titleModal) => {
+                            seeMoreModal(freeFormGoals, titleModal);
+                        }}
+                    />
+
+                    <GroupedGoalsList
+                        title="Desafios"
+                        icon="flag-outline"
+                        goals={deadlineBasedGoals}
+                        miniCard
+                        onEditGoal={(goalId) => loadGoalForEdit(goalId)}
+                        onRemoveGoal={(goalId) => deleteUserGoal(goalId)}
+                        onCompleteGoal={(goalId) => markGoalAsCompleted(goalId)}
+                        onSeeMore={(titleModal) => {
+                            seeMoreModal(deadlineBasedGoals, titleModal);
+                        }}
+                    />
+
+                    <GroupedGoalsList
+                        title="Metas Recorrentes"
+                        icon="repeat-outline"
+                        goals={dailyRecurringGoals}
+                        miniCard
+                        onEditGoal={(goalId) => loadGoalForEdit(goalId)}
+                        onRemoveGoal={(goalId) => deleteUserGoal(goalId)}
+                        onCompleteGoal={(goalId) => markGoalAsCompleted(goalId)}
+                        onSeeMore={(titleModal) => {
+                            seeMoreModal(dailyRecurringGoals, titleModal);
+                        }}
+                    />
                 </ScrollView>
             ) : (
-                <EmptyGoals />
+                <View>
+                    <SequenceCard
+                        lastDate={lastSequence}
+                        currentStreak={sequenceDays}
+                    />
+                    <EmptyGoalsScreen />
+                </View>
             )}
 
             <AppButton
@@ -293,13 +451,18 @@ export default function Home() {
                 propStyle={styles(theme).fab}
                 textColor={theme.textPrimary}
             />
-
-            <CreateGoal
+            <GoalEditModal
+                visible={editModalVisible}
+                onClose={() => setEditModalVisible(false)}
+                onReload={fetchUserGoals}
+                goal={selectedGoalForEdit ? selectedGoalForEdit : null}
+            />
+            <GoalCreationModal
                 visible={modalVisible}
-                onConfirm={addGoal}
+                onReload={fetchUserGoals}
                 onCancel={handleCancel}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -308,32 +471,29 @@ const styles = (theme: any) =>
         container: {
             flex: 1,
             width: "100%",
+            backgroundColor: theme.background,
         },
-        goalContainer: {
-            width: "100%",
-            paddingBottom: 80,
+        scrollContent: {
+            paddingBottom: 90,
+            paddingHorizontal: 16,
+            gap: 12,
         },
         fab: {
             position: "absolute",
             right: 16,
             bottom: 16,
             borderRadius: 35,
-            justifyContent: "center",
-            alignItems: "center",
             borderWidth: 1,
-            borderColor: theme.primary,
+            borderColor: theme.inputBorder,
+            paddingHorizontal: 20,
+            paddingVertical: 12,
         },
-        sectionTitleText: {
-            fontSize: 22,
-            fontWeight: "bold",
-            marginLeft: 8,
-            color: theme.textPrimary,
-            marginTop: 1,
-        },
-        sectionHeader: {
-            flexDirection: "row",
-            alignItems: "center",
-            marginTop: 20,
-            marginHorizontal: 16,
+        fadeTop: {
+            position: "absolute",
+            right: 0,
+            top: -12,
+            bottom: 0,
+            width: 30,
+            zIndex: 10,
         },
     });

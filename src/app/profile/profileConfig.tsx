@@ -3,7 +3,7 @@ import { updateProfile } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { creatUserDatabase } from "@/src/services/userServices";
+import { creatUserDatabase, setNameUser } from "@/src/services/userServices";
 import PickImageProfile from "@/src/components/ImageProfile/PickImageProfile";
 import AppLoadingButton from "@/src/components/Buttons/LoadingButton";
 import AppInput from "@/src/components/Inputs/Input";
@@ -46,6 +46,7 @@ export default function VerificationPage() {
                 return;
             } else {
                 try {
+                    await setNameUser(auth.currentUser?.uid, name);
                     await updateProfile(auth.currentUser, {
                         displayName: name,
                         photoURL: localImagePath,

@@ -1,14 +1,13 @@
+import React from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { ThemeProvider, useTheme } from "../context/contextTheme";
+import { useTheme } from "../context/contextTheme";
 
-export default function index() {
+export default function Index() {
     const { theme } = useTheme();
     return (
-        <ThemeProvider>
-            <View style={styles(theme).container}>
-                <ActivityIndicator size={40} color={theme.primary} />
-            </View>
-        </ThemeProvider>
+        <View style={styles(theme).container}>
+            <ActivityIndicator size={40} color={theme.primary} />
+        </View>
     );
 }
 

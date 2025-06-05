@@ -3,6 +3,8 @@ import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ThemeProvider } from "../context/contextTheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AchievementProvider } from "../context/contextAchievement";
+import { AchievementModal } from "../components/AchievementModal";
 
 export default function Layout() {
     const { user, loading } = useAuth();
@@ -47,29 +49,32 @@ export default function Layout() {
 
     return (
         <ThemeProvider>
-            <Stack
-                screenOptions={{
-                    headerShown: false,
-                    animation: "fade",
-                }}
-            >
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="groupDetail" />
+            <AchievementProvider>
+                <Stack
+                    screenOptions={{
+                        headerShown: false,
+                        animation: "fade",
+                    }}
+                >
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="groupDetail" />
 
-                <Stack.Screen name="auth/sign-in" />
-                <Stack.Screen name="auth/sign-up" />
-                <Stack.Screen name="auth/recoverPassword" />
-                <Stack.Screen name="auth/recoveryEmailSentScreen" />
+                    <Stack.Screen name="auth/sign-in" />
+                    <Stack.Screen name="auth/sign-up" />
+                    <Stack.Screen name="auth/recoverPassword" />
+                    <Stack.Screen name="auth/recoveryEmailSentScreen" />
 
-                <Stack.Screen name="OnboardingPresentation" />
+                    <Stack.Screen name="OnboardingPresentation" />
 
-                <Stack.Screen name="verification/verificationPage" />
-                <Stack.Screen name="verification/re-AuthenticatePage" />
-                <Stack.Screen name="verification/newEmail" />
-                <Stack.Screen name="verification/newPassword" />
+                    <Stack.Screen name="verification/verificationPage" />
+                    <Stack.Screen name="verification/re-AuthenticatePage" />
+                    <Stack.Screen name="verification/newEmail" />
+                    <Stack.Screen name="verification/newPassword" />
 
-                <Stack.Screen name="profile/profileConfig" />
-            </Stack>
+                    <Stack.Screen name="profile/profileConfig" />
+                </Stack>
+                <AchievementModal />
+            </AchievementProvider>
         </ThemeProvider>
     );
 }
